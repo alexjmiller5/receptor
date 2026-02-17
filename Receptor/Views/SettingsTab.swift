@@ -1,11 +1,21 @@
 import SwiftUI
 import SwiftData
+#if os(iOS)
+import UniformTypeIdentifiers
+#endif
+
+/// Wrapper to make URL work with .sheet(item:)
+struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
 
 struct SettingsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
     @State private var intakerURL: String = Configuration.intakerURL?.absoluteString ?? ""
     @State private var apiKey: String = Configuration.apiKey ?? ""
     @Query private var thoughts: [Thought]
+    @State private var exportItem: ExportItem?
 
     private var queuedCount: Int {
         thoughts.filter { $0.status == .queued || $0.status == .sending }.count
@@ -38,8 +48,8 @@ struct SettingsTab: View {
             }
             .navigationTitle("Settings")
             .scrollDismissesKeyboard(.interactively)
-            .onTapGesture {
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            .sheet(item: $exportItem) { item in
+                ShareSheet(activityItems: [item.url])
             }
         }
     }
@@ -175,11 +185,11 @@ struct SettingsTab: View {
                             .font(.headline)
                         Spacer()
                         if !syncManager.syncLog.isEmpty {
-                            Button("Clear") {
-                                syncManager.clearSyncLog()
+                            Button("Export") {
+                                exportLogsForMacOS()
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.blue)
                             .font(.caption)
                         }
                     }
@@ -216,6 +226,25 @@ struct SettingsTab: View {
         }
         .onTapGesture {
             NSApp.keyWindow?.makeFirstResponder(nil)
+        }
+    }
+
+    private func exportLogsForMacOS() {
+        Task.detached {
+            guard let url = await syncManager.exportLogs() else { return }
+
+            await MainActor.run {
+                let savePanel = NSSavePanel()
+                savePanel.allowedContentTypes = [.plainText]
+                savePanel.nameFieldStringValue = "receptor.log"
+                savePanel.canCreateDirectories = true
+
+                savePanel.begin { response in
+                    if response == .OK, let targetURL = savePanel.url {
+                        try? FileManager.default.copyItem(at: url, to: targetURL)
+                    }
+                }
+            }
         }
     }
     #endif
@@ -300,6 +329,7 @@ struct SettingsTab: View {
         }
     }
 
+    @ViewBuilder
     private var syncLogSection: some View {
         Section("Sync Log") {
             if syncManager.syncLog.isEmpty {
@@ -322,16 +352,68 @@ struct SettingsTab: View {
                     }
                     .padding(.vertical, 2)
                 }
+            }
+        }
 
-                Button(role: .destructive) {
-                    syncManager.clearSyncLog()
-                } label: {
-                    Label("Clear Log", systemImage: "trash")
+        if !syncManager.syncLog.isEmpty {
+            Section {
+                HStack {
+                    Spacer()
+                    exportLogButton
+                    Spacer()
                 }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 32, trailing: 0))
             }
         }
     }
+
+    private var exportLogButton: some View {
+        Button {
+            Task {
+                if let url = await syncManager.exportLogs() {
+                    exportItem = ExportItem(url: url)
+                }
+            }
+        } label: {
+            Label("Export Log", systemImage: "square.and.arrow.up")
+                .foregroundStyle(.primary)
+                .font(.body.weight(.medium))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+        }
+        .modifier(GlassButtonModifier())
+    }
 }
+
+struct GlassButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.regular.interactive(), in: .capsule)
+        } else {
+            content
+                .background(.thinMaterial, in: Capsule())
+        }
+        #else
+        content
+            .background(.quaternary, in: Capsule())
+        #endif
+    }
+}
+
+#if os(iOS)
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#endif
 
 #Preview {
     SettingsTab()
