@@ -16,7 +16,22 @@ enum SyncTrigger: String, Codable {
     case networkRestored = "Network Restored"
     case manualRetry = "Manual Retry"
     case pullToRefresh = "Pull to Refresh"
+    case composeButton = "Compose Button"
     case backgroundWake = "Background Wake"
+
+    var codeName: String {
+        switch self {
+        case .captureIntent: "CaptureThoughtIntent.perform()"
+        case .flushIntent: "ReceptQueueIntent.perform()"
+        case .backgroundTask: "handleBackgroundTask()"
+        case .appBecameActive: "applicationDidBecomeActive()"
+        case .networkRestored: "pathUpdateHandler()"
+        case .composeButton: "ComposeView.send()"
+        case .manualRetry: "manualRetry"
+        case .pullToRefresh: "pullToRefresh"
+        case .backgroundWake: "backgroundSession.uploadTask()"
+        }
+    }
 }
 
 @Model
@@ -29,6 +44,7 @@ final class Thought {
     var retryCount: Int
     var lastError: String?
     var sentVia: SyncTrigger?
+    var lockedUntil: Date?
 
     init(text: String) {
         self.id = UUID()
@@ -39,5 +55,21 @@ final class Thought {
         self.retryCount = 0
         self.lastError = nil
         self.sentVia = nil
+        self.lockedUntil = nil
+    }
+}
+
+@Model
+final class SyncLogEntry {
+    var id: UUID
+    var timestamp: Date
+    var message: String
+    var trigger: SyncTrigger
+
+    init(timestamp: Date, message: String, trigger: SyncTrigger) {
+        self.id = UUID()
+        self.timestamp = timestamp
+        self.message = message
+        self.trigger = trigger
     }
 }

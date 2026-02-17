@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import os.log
+
+private let appLog = OSLog(subsystem: "com.alexmiller.receptor", category: "App")
 
 @main
 struct ReceptorApp: App {
@@ -10,16 +13,23 @@ struct ReceptorApp: App {
     let container: ModelContainer
 
     init() {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let proc = ProcessInfo.processInfo.processName
+        os_log("[APP] ReceptorApp.init() — ENTRY pid=%d proc=%{public}@", log: appLog, type: .default, pid, proc)
+        DebugFileLog.write("[APP] ReceptorApp.init() ENTRY pid=\(pid) proc=\(proc)")
+
         do {
             // Use shared App Group container for SwiftData
-            let config = ModelConfiguration(
-                url: Configuration.sharedContainerURL!.appendingPathComponent("Receptor.sqlite")
-            )
-            let modelContainer = try ModelContainer(for: Thought.self, configurations: config)
+            let dbURL = Configuration.sharedContainerURL!.appendingPathComponent("Receptor.sqlite")
+            os_log("[APP] ReceptorApp.init() — DB path=%{public}@", log: appLog, type: .default, dbURL.path)
+
+            let config = ModelConfiguration(url: dbURL)
+            let modelContainer = try ModelContainer(for: Thought.self, SyncLogEntry.self, configurations: config)
             self.container = modelContainer
 
             // Configure the shared SyncManager with the container
             SyncManager.shared.configure(with: modelContainer)
+            os_log("[APP] ReceptorApp.init() — SyncManager configured", log: appLog, type: .default)
 
             // Request notification permission (iOS does this in AppDelegate)
             #if os(macOS)
@@ -28,7 +38,9 @@ struct ReceptorApp: App {
 
             // Reconnect background URLSession to pick up in-flight wake pings
             SyncManager.shared.reconnectBackgroundSession()
+            os_log("[APP] ReceptorApp.init() — EXIT success", log: appLog, type: .default)
         } catch {
+            os_log("[APP] ReceptorApp.init() — FATAL: ModelContainer init failed: %{public}@", log: appLog, type: .fault, error.localizedDescription)
             fatalError("Failed to initialize ModelContainer: \(error)")
         }
     }

@@ -51,7 +51,14 @@ struct ThoughtRow: View {
                 .lineLimit(3)
 
             HStack {
-                StatusBadge(status: thought.status)
+                VStack(alignment: .leading, spacing: 2) {
+                    StatusBadge(status: thought.status)
+                    if thought.status == .sent, let sentVia = thought.sentVia {
+                        Text(sentVia.codeName)
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                }
 
                 Spacer()
 
@@ -61,14 +68,9 @@ struct ThoughtRow: View {
                         .foregroundStyle(.secondary)
 
                     if let sentAt = thought.sentAt {
-                        HStack(spacing: 4) {
-                            Text("Sent: \(timeFormatter.string(from: sentAt))")
-                            if let sentVia = thought.sentVia {
-                                Text("(\(sentVia.rawValue))")
-                            }
-                        }
-                        .font(.caption2)
-                        .foregroundStyle(.green)
+                        Text("Sent: \(timeFormatter.string(from: sentAt))")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
                     }
                 }
             }

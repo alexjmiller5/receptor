@@ -11,38 +11,40 @@
 		E00000000000000000000002 /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000012 /* Thought.swift */; };
 		E00000000000000000000003 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000013 /* SyncManager.swift */; };
 		E00000000000000000000004 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000014 /* Configuration.swift */; };
-		E0000000000000000000000E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001F /* AppDelegate.swift */; };
 		E00000000000000000000005 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000015 /* ContentView.swift */; };
 		E00000000000000000000006 /* ThoughtListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000016 /* ThoughtListView.swift */; };
 		E00000000000000000000007 /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000017 /* ComposeView.swift */; };
 		E00000000000000000000009 /* CaptureThoughtIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000019 /* CaptureThoughtIntent.swift */; };
-		E0000000000000000000000D /* ReceptQueueIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001E /* ReceptQueueIntent.swift */; };
 		E0000000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001A /* Assets.xcassets */; };
 		E0000000000000000000000B /* ThoughtsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001B /* ThoughtsTab.swift */; };
 		E0000000000000000000000C /* SettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001C /* SettingsTab.swift */; };
+		E0000000000000000000000D /* ReceptQueueIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001E /* ReceptQueueIntent.swift */; };
+		E0000000000000000000000E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0000000000000000000001F /* AppDelegate.swift */; };
 		E00000000000000000000100 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000110 /* MenuBarView.swift */; };
 		E00000000000000000000101 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000111 /* LoginItemManager.swift */; };
+		E00000000000000000000102 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00000000000000000000120 /* DebugFileLog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		E00000000000000000000010 /* Receptor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Receptor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00000000000000000000011 /* ReceptorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptorApp.swift; sourceTree = "<group>"; };
-		E0000000000000000000001D /* Receptor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Receptor.entitlements; sourceTree = "<group>"; };
-		E00000000000000000000112 /* Receptor-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Receptor-macOS.entitlements"; sourceTree = "<group>"; };
 		E00000000000000000000012 /* Thought.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thought.swift; sourceTree = "<group>"; };
 		E00000000000000000000013 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		E00000000000000000000014 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
-		E0000000000000000000001F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E00000000000000000000015 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E00000000000000000000016 /* ThoughtListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtListView.swift; sourceTree = "<group>"; };
 		E00000000000000000000017 /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		E00000000000000000000019 /* CaptureThoughtIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureThoughtIntent.swift; sourceTree = "<group>"; };
-		E0000000000000000000001E /* ReceptQueueIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptQueueIntent.swift; sourceTree = "<group>"; };
 		E0000000000000000000001A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E0000000000000000000001B /* ThoughtsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtsTab.swift; sourceTree = "<group>"; };
 		E0000000000000000000001C /* SettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTab.swift; sourceTree = "<group>"; };
+		E0000000000000000000001D /* Receptor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Receptor.entitlements; sourceTree = "<group>"; };
+		E0000000000000000000001E /* ReceptQueueIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptQueueIntent.swift; sourceTree = "<group>"; };
+		E0000000000000000000001F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E00000000000000000000110 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		E00000000000000000000111 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
+		E00000000000000000000112 /* Receptor-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Receptor-macOS.entitlements"; sourceTree = "<group>"; };
+		E00000000000000000000120 /* DebugFileLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugFileLog.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +108,7 @@
 				E00000000000000000000013 /* SyncManager.swift */,
 				E00000000000000000000014 /* Configuration.swift */,
 				E0000000000000000000001F /* AppDelegate.swift */,
+				E00000000000000000000120 /* DebugFileLog.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -219,6 +222,7 @@
 				E0000000000000000000000D /* ReceptQueueIntent.swift in Sources */,
 				E00000000000000000000100 /* MenuBarView.swift in Sources */,
 				E00000000000000000000101 /* LoginItemManager.swift in Sources */,
+				E00000000000000000000102 /* DebugFileLog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,10 +287,10 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -341,10 +345,10 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				VALIDATE_PRODUCT = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -355,9 +359,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Receptor/Receptor.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Receptor/Receptor-macOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 467A4PRB8F;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers = "$(PRODUCT_BUNDLE_IDENTIFIER).sync";
@@ -378,6 +383,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -393,9 +399,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Receptor/Receptor.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Receptor/Receptor-macOS.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 467A4PRB8F;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers = "$(PRODUCT_BUNDLE_IDENTIFIER).sync";
@@ -416,6 +423,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
