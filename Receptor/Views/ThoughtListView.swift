@@ -18,7 +18,7 @@ struct ThoughtListView: View {
                     ForEach(thoughts) { thought in
                         ThoughtRow(thought: thought)
                             .swipeActions(edge: .leading) {
-                                if thought.status == .failed {
+                                if thought.status == .failed || thought.status == .rejected {
                                     Button {
                                         thought.status = .queued
                                         syncManager.requestFlush(trigger: .manualRetry)
@@ -75,7 +75,7 @@ struct ThoughtRow: View {
                 }
             }
 
-            if let error = thought.lastError, thought.status == .failed {
+            if let error = thought.lastError, thought.status == .failed || thought.status == .rejected {
                 Text(error)
                     .font(.caption2)
                     .foregroundStyle(.red)
@@ -108,6 +108,7 @@ struct StatusBadge: View {
         case .sending: "arrow.up.circle"
         case .sent: "checkmark.circle"
         case .failed: "exclamationmark.triangle"
+        case .rejected: "nosign"
         }
     }
 
@@ -117,6 +118,7 @@ struct StatusBadge: View {
         case .sending: .blue
         case .sent: .green
         case .failed: .red
+        case .rejected: .gray
         }
     }
 }

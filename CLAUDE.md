@@ -18,9 +18,12 @@ xcodebuild -project Receptor.xcodeproj -scheme Receptor \
   -destination "platform=macOS" -allowProvisioningUpdates build
 
 # Deploy (quit, remove old, copy new, codesign, launch)
+# NOTE: pick the NEWEST DerivedData dir explicitly — a bare Receptor-* glob can
+# match stale build dirs and cp will deploy the wrong (old) build.
 osascript -e 'quit app "Receptor"' 2>/dev/null; \
   rm -rf /Applications/Receptor.app; \
-  cp -R ~/Library/Developer/Xcode/DerivedData/Receptor-*/Build/Products/Debug/Receptor.app /Applications/; \
+  APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/Receptor-*/Build/Products/Debug/Receptor.app | head -1); \
+  cp -R "$APP" /Applications/; \
   codesign --force --deep --sign - /Applications/Receptor.app; \
   open /Applications/Receptor.app
 ```
