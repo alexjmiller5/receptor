@@ -118,6 +118,12 @@ final class SyncManager: ObservableObject {
     func queueThought(_ text: String, trigger: SyncTrigger = .captureIntent) async {
         os_log("[SYNC] queueThought() — text='%{public}@' trigger=%{public}@ | %{public}@", log: syncLog_os, type: .default, String(text.prefix(30)), trigger.rawValue, processTag())
 
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            os_log("[SYNC] queueThought() — SKIP: empty text", log: syncLog_os, type: .error)
+            addLogEntry("QUEUE-SKIP empty text", trigger: trigger)
+            return
+        }
+
         guard let container = modelContainer else {
             os_log("[SYNC] queueThought() — ABORT: modelContainer is nil", log: syncLog_os, type: .error)
             return
@@ -270,12 +276,12 @@ final class SyncManager: ObservableObject {
             os_log("[UPLOAD] SUCCESS id=%{public}@", log: uploadLog, type: .default, thoughtIdShort)
             addLogEntry("UPLOAD-SUCCESS id=\(thoughtIdShort) code=\(statusCode)", trigger: .backgroundWake)
         } else {
-            // Failure
-            thought.status = .failed
+            // Failure — 4xx means the server definitively refused this payload, never auto-retry
+            thought.status = (error == nil && (400...499).contains(statusCode)) ? .rejected : .failed
             thought.retryCount += 1
             thought.lastError = error?.localizedDescription ?? "HTTP \(statusCode)"
-            os_log("[UPLOAD] FAILED id=%{public}@ error=%{public}@", log: uploadLog, type: .error, thoughtIdShort, thought.lastError ?? "unknown")
-            addLogEntry("UPLOAD-FAILED id=\(thoughtIdShort) error=\(thought.lastError ?? "unknown")", trigger: .backgroundWake)
+            os_log("[UPLOAD] FAILED id=%{public}@ status=%{public}@ error=%{public}@", log: uploadLog, type: .error, thoughtIdShort, thought.status.rawValue, thought.lastError ?? "unknown")
+            addLogEntry("UPLOAD-FAILED id=\(thoughtIdShort) status=\(thought.status.rawValue) error=\(thought.lastError ?? "unknown")", trigger: .backgroundWake)
         }
 
         saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
@@ -493,6 +499,12 @@ final class SyncManager: ObservableObject {
                 saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
                 successCount += 1
                 os_log("[FLUSH] item %d/%d SUCCESS id=%{public}@", log: flushLog, type: .default, index + 1, thoughts.count, thoughtIdShort)
+            } else if freshThought.status == .rejected {
+                // Permanent server rejection — skip it so it can't wedge the queue
+                freshThought.lockedUntil = nil
+                saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
+                os_log("[FLUSH] SKIP-REJECTED id=%{public}@ — continuing flush", log: flushLog, type: .error, thoughtIdShort)
+                addLogEntry("SKIP-REJECTED id=\(thoughtIdShort)", trigger: trigger)
             } else {
                 freshThought.lockedUntil = nil
                 saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
@@ -553,11 +565,12 @@ final class SyncManager: ObservableObject {
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-                thought.status = .failed
+                // 4xx = the server definitively refused this payload; retrying can never succeed
+                thought.status = (400...499).contains(statusCode) ? .rejected : .failed
                 thought.retryCount += 1
                 thought.lastError = "Server error: \(statusCode)"
-                os_log("[HTTP] FAIL id=%{public}@ code=%d", log: httpLog, type: .error, thoughtIdShort, statusCode)
-                addLogEntry("HTTP-FAIL id=\(thoughtIdShort) code=\(statusCode)", trigger: trigger)
+                os_log("[HTTP] FAIL id=%{public}@ code=%d status=%{public}@", log: httpLog, type: .error, thoughtIdShort, statusCode, thought.status.rawValue)
+                addLogEntry("HTTP-FAIL id=\(thoughtIdShort) code=\(statusCode) status=\(thought.status.rawValue)", trigger: trigger)
                 saveContextWithErrorHandling(modelContainer?.mainContext, thoughtId: thoughtIdShort)
                 return false
             }
