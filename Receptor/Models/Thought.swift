@@ -6,6 +6,9 @@ enum ThoughtStatus: String, Codable {
     case sending = "sending"
     case sent = "sent"
     case failed = "failed"
+    /// Permanently refused by the server (4xx). Never auto-retried — a rejected
+    /// thought at the head of the queue must not block FIFO flushes forever.
+    case rejected = "rejected"
 }
 
 enum SyncTrigger: String, Codable {
