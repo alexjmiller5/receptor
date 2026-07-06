@@ -14,6 +14,7 @@ struct SettingsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
     @State private var intakerURL: String = Configuration.intakerURL?.absoluteString ?? ""
     @State private var apiKey: String = Configuration.apiKey ?? ""
+    @State private var proxySecret: String = Configuration.proxySecret ?? ""
     @Query private var thoughts: [Thought]
     @State private var exportItem: ExportItem?
 
@@ -93,7 +94,7 @@ struct SettingsTab: View {
                         Text("Intaker URL")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        TextField("https://your-gateway.cloudfunctions.net/intaker", text: $intakerURL)
+                        TextField("https://amiller06880--synapse-webhook.modal.run", text: $intakerURL)
                             .textFieldStyle(.plain)
                             .font(.system(.body, design: .monospaced))
                             .padding(8)
@@ -109,10 +110,10 @@ struct SettingsTab: View {
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("API Key")
+                        Text("Modal-Key (proxy token ID)")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        SecureField("Enter your API key", text: $apiKey)
+                        SecureField("Enter your Modal proxy token ID", text: $apiKey)
                             .textFieldStyle(.plain)
                             .font(.system(.body, design: .monospaced))
                             .padding(8)
@@ -124,6 +125,25 @@ struct SettingsTab: View {
                             )
                             .onChange(of: apiKey) { _, newValue in
                                 Configuration.apiKey = newValue.isEmpty ? nil : newValue
+                            }
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Modal-Secret (proxy token secret)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        SecureField("Enter your Modal proxy token secret", text: $proxySecret)
+                            .textFieldStyle(.plain)
+                            .font(.system(.body, design: .monospaced))
+                            .padding(8)
+                            .background(Color(nsColor: .textBackgroundColor))
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                            )
+                            .onChange(of: proxySecret) { _, newValue in
+                                Configuration.proxySecret = newValue.isEmpty ? nil : newValue
                             }
                     }
 
@@ -256,7 +276,7 @@ struct SettingsTab: View {
                 Text("Intaker URL")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                TextField("https://your-gateway.cloudfunctions.net/intaker", text: $intakerURL)
+                TextField("https://amiller06880--synapse-webhook.modal.run", text: $intakerURL)
                     #if os(iOS)
                     .textContentType(.URL)
                     .keyboardType(.URL)
@@ -270,10 +290,10 @@ struct SettingsTab: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("API Key")
+                Text("Modal-Key (proxy token ID)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                SecureField("Enter your API key", text: $apiKey)
+                SecureField("Enter your Modal proxy token ID", text: $apiKey)
                     #if os(iOS)
                     .textContentType(.password)
                     #endif
@@ -281,6 +301,21 @@ struct SettingsTab: View {
                     .font(.system(.body, design: .monospaced))
                     .onChange(of: apiKey) { _, newValue in
                         Configuration.apiKey = newValue.isEmpty ? nil : newValue
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Modal-Secret (proxy token secret)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                SecureField("Enter your Modal proxy token secret", text: $proxySecret)
+                    #if os(iOS)
+                    .textContentType(.password)
+                    #endif
+                    .autocorrectionDisabled()
+                    .font(.system(.body, design: .monospaced))
+                    .onChange(of: proxySecret) { _, newValue in
+                        Configuration.proxySecret = newValue.isEmpty ? nil : newValue
                     }
             }
         } header: {
@@ -291,7 +326,7 @@ struct SettingsTab: View {
                     .foregroundStyle(.green)
                     .font(.caption)
             } else {
-                Label("Enter URL and API key to enable syncing", systemImage: "exclamationmark.triangle.fill")
+                Label("Enter URL and both Modal proxy token values to enable syncing", systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .font(.caption)
             }
@@ -301,7 +336,9 @@ struct SettingsTab: View {
     private var requestFormatSection: some View {
         Section("Request Format") {
             VStack(alignment: .leading, spacing: 4) {
-                Text("POST {url}?key={apiKey}")
+                Text("POST {url}")
+                    .font(.system(.caption, design: .monospaced))
+                Text("Modal-Key: {token id} · Modal-Secret: {token secret}")
                     .font(.system(.caption, design: .monospaced))
                 Text("Content-Type: application/json")
                     .font(.system(.caption, design: .monospaced))
