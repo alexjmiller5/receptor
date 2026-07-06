@@ -169,6 +169,7 @@ final class SyncManager: ObservableObject {
         DebugFileLog.write("[UPLOAD] enqueueBackgroundUploads() trigger=\(trigger.rawValue)")
 
         guard let apiKey = Configuration.apiKey,
+              let proxySecret = Configuration.proxySecret,
               let baseURL = Configuration.intakerURL else {
             os_log("[UPLOAD] ABORT — not configured", log: uploadLog, type: .error)
             addLogEntry("UPLOAD-ABORT not configured", trigger: trigger)
@@ -198,9 +199,8 @@ final class SyncManager: ObservableObject {
         os_log("[UPLOAD] ENQUEUING count=%d ids=[%{public}@]", log: uploadLog, type: .default, pending.count, pendingIds)
         addLogEntry("UPLOAD-ENQUEUE count=\(pending.count) ids=[\(pendingIds)]", trigger: trigger)
 
-        var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
-        urlComponents.queryItems = [URLQueryItem(name: "key", value: apiKey)]
-        let requestURL = urlComponents.url!
+        // Modal proxy auth: credentials travel as headers, not a query param
+        let requestURL = baseURL
 
         for thought in pending {
             let thoughtIdShort = String(thought.id.uuidString.prefix(8))
@@ -228,6 +228,8 @@ final class SyncManager: ObservableObject {
             var request = URLRequest(url: requestURL)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
+            request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
 
             // Create background upload task
             let task = backgroundSession.uploadTask(with: request, fromFile: fileURL)
@@ -533,6 +535,7 @@ final class SyncManager: ObservableObject {
         let thoughtIdShort = String(thought.id.uuidString.prefix(8))
 
         guard let apiKey = Configuration.apiKey,
+              let proxySecret = Configuration.proxySecret,
               let baseURL = Configuration.intakerURL else {
             os_log("[HTTP] FAIL id=%{public}@ reason=not_configured | %{public}@", log: httpLog, type: .error, thoughtIdShort, processTag())
             addLogEntry("SEND-FAIL id=\(thoughtIdShort) reason=not_configured", trigger: trigger)
@@ -542,15 +545,15 @@ final class SyncManager: ObservableObject {
         os_log("[HTTP] SEND-START id=%{public}@ text='%{public}@' attempt=%d | %{public}@", log: httpLog, type: .default, thoughtIdShort, String(thought.text.prefix(20)), thought.retryCount + 1, processTag())
         addLogEntry("SEND-START id=\(thoughtIdShort) text='\(thought.text.prefix(20))' attempt=\(thought.retryCount + 1)", trigger: trigger)
 
-        var urlComponents = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
-        urlComponents.queryItems = [URLQueryItem(name: "key", value: apiKey)]
-
-        let requestURL = urlComponents.url!
+        // Modal proxy auth: credentials travel as headers, not a query param
+        let requestURL = baseURL
         os_log("[HTTP] URL=%{public}@", log: httpLog, type: .default, requestURL.absoluteString)
 
         var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
+        request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
         request.timeoutInterval = 30
 
         let payload = ["raw_text": thought.text]
