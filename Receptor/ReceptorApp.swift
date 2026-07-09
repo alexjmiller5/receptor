@@ -47,13 +47,17 @@ struct ReceptorApp: App {
 
     var body: some Scene {
         #if os(macOS)
-        // Menu bar app on macOS
+        // Menu bar app on macOS — clicking the icon opens the app UI directly
+        // (a .window popover), instead of dropping down a menu.
         MenuBarExtra {
-            MenuBarMenu()
+            MacContentView()
+                .environmentObject(SyncManager.shared)
+                .modelContainer(container)
+                .frame(width: 400, height: 500)
         } label: {
             Image(systemName: "brain.head.profile")
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         // Main window
         Window("Receptor", id: "main") {
