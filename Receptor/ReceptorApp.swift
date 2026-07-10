@@ -9,6 +9,9 @@ struct ReceptorApp: App {
     #if os(iOS)
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     #endif
+    #if os(macOS)
+    @NSApplicationDelegateAdaptor(MacAppDelegate.self) var macAppDelegate
+    #endif
 
     let container: ModelContainer
 
@@ -47,19 +50,9 @@ struct ReceptorApp: App {
 
     var body: some Scene {
         #if os(macOS)
-        // Menu bar app on macOS — clicking the icon opens the app UI directly
-        // (a .window popover), instead of dropping down a menu.
-        MenuBarExtra {
-            MacContentView()
-                .environmentObject(SyncManager.shared)
-                .modelContainer(container)
-                .frame(width: 400, height: 500)
-        } label: {
-            Image(systemName: "brain.head.profile")
-        }
-        .menuBarExtraStyle(.window)
-
-        // Main window
+        // Menu bar app on macOS: the status-bar item (MacAppDelegate) opens THIS
+        // window on click — same as the old "Open Receptor" / ⌘O. No MenuBarExtra
+        // dropdown/popover.
         Window("Receptor", id: "main") {
             MacContentView()
                 .environmentObject(SyncManager.shared)
@@ -97,6 +90,7 @@ struct ReceptorApp: App {
 #if os(macOS)
 struct MacContentView: View {
     @EnvironmentObject private var syncManager: SyncManager
+    @Environment(\.openWindow) private var openWindow
     @State private var selectedTab = 0
 
     var body: some View {
@@ -114,6 +108,13 @@ struct MacContentView: View {
                 .tag(1)
         }
         .frame(minWidth: 450, minHeight: 400)
+        .onAppear {
+            // Give the status-item click a way to reopen this window scene.
+            MenuBarCoordinator.shared.openMainWindow = {
+                openWindow(id: "main")
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        }
     }
 }
 
