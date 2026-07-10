@@ -10,9 +10,9 @@ final class MenuBarCoordinator: ObservableObject {
     var openMainWindow: (() -> Void)?
 }
 
-/// macOS status-bar item. Left-click opens the real Receptor window (same as the
-/// old "Open Receptor" / ⌘O did); right-click shows a small Open/Quit menu so the
-/// app can still be quit from the menu bar (it's an accessory app, no Dock icon).
+/// macOS status-bar item. Left-click TOGGLES the real Receptor window (open if
+/// closed, close if visible); right-click shows an Open/Quit menu. The item stays
+/// in the menu bar for the app's whole lifetime — closing the window does NOT quit.
 final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
 
@@ -28,17 +28,38 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
     }
 
+    /// Menu-bar app: closing the window must NOT terminate the app, so the status
+    /// item stays put and the window can be reopened from it.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    private var mainWindow: NSWindow? {
+        NSApp.windows.first { $0.identifier?.rawValue == "main" }
+    }
+
     @objc private func statusItemClicked() {
         if NSApp.currentEvent?.type == .rightMouseUp {
             showMenu()
         } else {
-            openMainWindow()
+            toggleMainWindow()
         }
     }
 
-    @objc private func openMainWindow() {
+    /// Left-click toggle: a visible window closes; an absent/hidden one opens.
+    @objc private func toggleMainWindow() {
+        if let win = mainWindow, win.isVisible {
+            win.close()
+        } else {
+            showMainWindow()
+        }
+    }
+
+    /// Open (or front) the main window — the right-click "Open" and the open half
+    /// of the toggle. Uses the SwiftUI openWindow bridge if the scene was released.
+    @objc private func showMainWindow() {
         NSApp.activate(ignoringOtherApps: true)
-        if let win = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
+        if let win = mainWindow {
             win.makeKeyAndOrderFront(nil)
         } else {
             MenuBarCoordinator.shared.openMainWindow?()
@@ -48,7 +69,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private func showMenu() {
         let menu = NSMenu()
         let open = NSMenuItem(
-            title: "Open Receptor", action: #selector(openMainWindow), keyEquivalent: ""
+            title: "Open Receptor", action: #selector(showMainWindow), keyEquivalent: ""
         )
         open.target = self
         let quit = NSMenuItem(
