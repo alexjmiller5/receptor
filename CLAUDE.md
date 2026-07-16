@@ -34,6 +34,19 @@ osascript -e 'quit app "Receptor"' 2>/dev/null; \
 
 iOS builds use manually configured provisioning profiles. Team ID: `467A4PRB8F`. There are two modes:
 
+> **Signing status as of 2026-07-16:** Alex removed the old Apple Development
+> certificate and the Receptor/Synapse per-app provisioning profiles. The
+> team-wide default is now the wildcard profile `"Alexander Wildcard Ad Hoc"`
+> (`com.alexmiller.*`, see the `ios-app` template) — **but Receptor cannot
+> use it**: the App Groups entitlement (`group.com.alexmiller.receptor`)
+> requires its explicit App ID. Before the next iOS build works, recreate on
+> developer.apple.com against the current Apple Distribution cert:
+> - Mode B: a new "Receptor Ad Hoc Provisioning Profile" (explicit App ID
+>   `com.alexmiller.receptor` with App Groups enabled + device).
+> - Mode A additionally needs a new Apple Development certificate and a new
+>   "Receptor Development Provisioning Profile".
+> The commands below are unchanged once those exist.
+
 #### Mode A: "DEBUG" (coding sessions, logs, 7-day validity)
 
 Use this when debugging, viewing logs, or during active development.
