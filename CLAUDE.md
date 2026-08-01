@@ -34,18 +34,18 @@ osascript -e 'quit app "Receptor"' 2>/dev/null; \
 
 iOS builds use manually configured provisioning profiles. Team ID: `467A4PRB8F`. There are two modes:
 
-> **Signing status as of 2026-07-16:** Alex removed the old Apple Development
-> certificate and the Receptor/Synapse per-app provisioning profiles. The
-> team-wide default is now the wildcard profile `"Alexander Wildcard Ad Hoc"`
-> (`com.alexmiller.*`, see the `ios-app` template) — **but Receptor cannot
-> use it**: the App Groups entitlement (`group.com.alexmiller.receptor`)
-> requires its explicit App ID. Before the next iOS build works, recreate on
-> developer.apple.com against the current Apple Distribution cert:
-> - Mode B: a new "Receptor Ad Hoc Provisioning Profile" (explicit App ID
->   `com.alexmiller.receptor` with App Groups enabled + device).
-> - Mode A additionally needs a new Apple Development certificate and a new
->   "Receptor Development Provisioning Profile".
-> The commands below are unchanged once those exist.
+> **Signing status as of 2026-08-01:** iOS STABLE builds use the team-wide
+> wildcard profile `"Alexander Wildcard Ad Hoc"` (`com.alexmiller.*`, expires
+> 2027-02-13, see the `apple-app` template) with the valid Apple Distribution
+> cert. To make that possible the App Groups entitlement was dropped from the
+> **iOS** build (wildcard App IDs can't carry it); iOS stores SwiftData +
+> settings in the app's own container via `Configuration.sharedContainerURL`.
+> macOS keeps the group container — its data lives there.
+> Consequences on iPhone reinstall: settings (API key/secret/intaker URL) must
+> be re-entered once, and any data in the old group container is orphaned.
+> Mode A (DEBUG) is still broken: the Apple Development cert in the keychain is
+> EXPIRED — it needs a new dev cert + a "Receptor Development Provisioning
+> Profile" recreated on developer.apple.com.
 
 #### Mode A: "DEBUG" (coding sessions, logs, 7-day validity)
 
@@ -80,7 +80,7 @@ xcodebuild -project Receptor.xcodeproj \
   -configuration Release \
   CODE_SIGN_STYLE="Manual" \
   CODE_SIGN_IDENTITY="Apple Distribution" \
-  PROVISIONING_PROFILE_SPECIFIER="Receptor Ad Hoc Provisioning Profile" \
+  PROVISIONING_PROFILE_SPECIFIER="Alexander Wildcard Ad Hoc" \
   DEVELOPMENT_TEAM=467A4PRB8F \
   clean build
 
@@ -122,7 +122,7 @@ xcrun xctrace list devices 2>&1 | grep -i iphone
 - **Thought** - The core data model (`Models/Thought.swift`), persisted in SwiftData
 - **Recept** - The verb for capturing and sending a thought (e.g., `receptThought()`)
 - **SyncManager** - Singleton that handles all sync operations, network monitoring, and background wake
-- **App Group** - `group.com.alexmiller.receptor` enables data sharing with Shortcuts extensions
+- **App Group** - `group.com.alexmiller.receptor`, **macOS only** (iOS dropped it for wildcard signing); all storage paths route through `Configuration.sharedContainerURL`
 
 ## Sync Flow
 
@@ -162,4 +162,4 @@ Receptor/
 1. **Always deploy after changes** - Build and install to both iOS device and macOS
 2. **FIFO ordering** - Flush stops on first failure to preserve order
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
-4. **Per-item locking** - 5-second lock prevents double-sends during concurrent flushes
+4. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush

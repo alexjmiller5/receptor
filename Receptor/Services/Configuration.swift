@@ -9,12 +9,25 @@ enum Configuration {
     private static let proxySecretKey = "receptor_proxy_secret"
     private static let intakerURLKey = "receptor_intaker_url"
 
+    // iOS builds are signed with the wildcard Ad Hoc profile, which cannot carry
+    // an App Groups entitlement — so iOS stores everything in the app's own
+    // container. macOS keeps the group container (existing data lives there).
     private static var sharedDefaults: UserDefaults? {
+        #if os(iOS)
+        .standard
+        #else
         UserDefaults(suiteName: appGroupIdentifier)
+        #endif
     }
 
     static var sharedContainerURL: URL? {
+        #if os(iOS)
+        guard let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+        #else
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)
+        #endif
     }
 
     static var apiKey: String? {

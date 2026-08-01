@@ -1,7 +1,8 @@
 import SwiftUI
-import AppKit
 
 #if os(macOS)
+import AppKit
+
 /// Bridges the AppKit status-item click to SwiftUI's `openWindow`, which can open
 /// the "main" Window scene even after it's been closed. The closure is captured
 /// once from a live SwiftUI view (the main window's content) and reused.
