@@ -43,9 +43,9 @@ iOS builds use manually configured provisioning profiles. Team ID: `467A4PRB8F`.
 > macOS keeps the group container — its data lives there.
 > Consequences on iPhone reinstall: settings (API key/secret/intaker URL) must
 > be re-entered once, and any data in the old group container is orphaned.
-> Mode A (DEBUG) is still broken: the Apple Development cert in the keychain is
-> EXPIRED — it needs a new dev cert + a "Receptor Development Provisioning
-> Profile" recreated on developer.apple.com.
+> Mode A (DEBUG) is still broken: no Apple Development cert exists (the expired
+> one was deleted from the keychain 2026-08-01) — it needs a new dev cert + a
+> "Receptor Development Provisioning Profile" created on developer.apple.com.
 
 #### Mode A: "DEBUG" (coding sessions, logs, 7-day validity)
 
