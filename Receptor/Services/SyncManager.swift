@@ -38,7 +38,9 @@ final class SyncManager: ObservableObject {
 
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
-    private let lockDuration: TimeInterval = 10.0
+    // Must outlive receptThought's 30s HTTP timeout: an expired lock on a
+    // .sending thought then reliably means the process died mid-send.
+    private let lockDuration: TimeInterval = 40.0
 
     private(set) var modelContainer: ModelContainer?
 
@@ -444,8 +446,18 @@ final class SyncManager: ObservableObject {
             return 0
         }
 
+        let staleCutoff = Date()
         let thoughts = allThoughts.filter {
-            $0.status == .queued || $0.status == .failed
+            switch $0.status {
+            case .queued, .failed:
+                return true
+            case .sending:
+                // Lock expired while still .sending → the process died mid-send
+                // (lock outlives the HTTP timeout). Safe to resend.
+                return ($0.lockedUntil ?? .distantPast) <= staleCutoff
+            case .sent, .rejected:
+                return false
+            }
         }
 
         if thoughts.isEmpty {
@@ -483,8 +495,9 @@ final class SyncManager: ObservableObject {
                 continue
             }
 
-            // Check if status changed (e.g., already sending or sent)
-            if freshThought.status == .sending || freshThought.status == .sent {
+            // Check if status changed (in-flight .sending is caught by the lock
+            // check above; an unlocked .sending is stale and falls through to resend)
+            if freshThought.status == .sent || freshThought.status == .rejected {
                 os_log("[FLUSH] SKIP-STATUS id=%{public}@ status=%{public}@", log: flushLog, type: .default, thoughtIdShort, freshThought.status.rawValue)
                 addLogEntry("SKIP-STATUS id=\(thoughtIdShort) status=\(freshThought.status.rawValue)", trigger: trigger)
                 continue
