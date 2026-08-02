@@ -1,12 +1,12 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents when working with code in this repository.
 
 ## Overview
 
 Receptor is a multi-platform SwiftUI app (iOS/macOS) that captures thoughts and syncs them to the Synapse backend. It uses an offline-first architecture where thoughts are persisted locally in SwiftData and synced reliably via a background wake mechanism.
 
-See the parent `../CLAUDE.md` for comprehensive documentation including architecture, sync model, and detailed build/deploy commands.
+See the Synapse repo’s `../synapse/AGENTS.md` for comprehensive documentation including architecture, sync model, and detailed build/deploy commands.
 
 ## Quick Reference
 
