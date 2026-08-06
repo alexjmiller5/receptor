@@ -1,0 +1,141 @@
+name: release-macos
+
+# macOS releasing = pushing a tag vX.Y.Z. This workflow builds, Developer-ID-
+# signs (preserving the app-group entitlement), notarizes, staples, publishes
+# a GH release, and bumps the Homebrew cask. iOS has NO CI deploy — it ships
+# locally via the justfile (see AGENTS.md).
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  APP: Receptor
+  KEYCHAIN: release.keychain-db
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: 1Password/install-cli-action@v4
+
+      # The one GH secret: this project's 1Password service-account token,
+      # scoped read-only to the project vault + the shared Apple Signing vault.
+      - uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DEVELOPER_ID_P12_BASE64: op://Apple Signing/Developer ID Application Cert/p12_base64
+          DEVELOPER_ID_P12_PASSWORD: op://Apple Signing/Developer ID Application Cert/password
+          ASC_KEY_P8_BASE64: op://Apple Signing/App Store Connect API Key/p8_base64
+          ASC_KEY_ID: op://Apple Signing/App Store Connect API Key/key_id
+          ASC_ISSUER_ID: op://Apple Signing/App Store Connect API Key/issuer_id
+          TAP_PUSH_TOKEN: op://Apple Signing/Homebrew Tap Push Token/token
+
+      # Plain build (not archive) with a fixed derivedDataPath so the .app
+      # path is deterministic. No -allowProvisioningUpdates in CI — signing
+      # happens in the codesign step below, not inside xcodebuild.
+      - name: Build (unsigned Release)
+        run: |
+          xcodebuild -project Receptor.xcodeproj -scheme Receptor \
+            -destination "platform=macOS" \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            DEVELOPMENT_TEAM=467A4PRB8F \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+          rm -rf "build/$APP.app"
+          ditto "build/DerivedData/Build/Products/Release/$APP.app" "build/$APP.app"
+
+      - name: Import Developer ID cert into temp keychain
+        run: |
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          printf '%s' "$DEVELOPER_ID_P12_BASE64" | base64 -d > cert.p12
+          security import cert.p12 -k "$KEYCHAIN" -P "$DEVELOPER_ID_P12_PASSWORD" \
+            -T /usr/bin/codesign
+          rm -f cert.p12
+          security set-key-partition-list -S "apple-tool:,apple:" \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+
+      # The app-group entitlement (group.com.alexmiller.receptor) MUST survive
+      # the re-sign — macOS app groups work with Developer ID without a
+      # provisioning profile. Hence the explicit --entitlements flag.
+      - name: Codesign (hardened runtime + app-group entitlement)
+        run: |
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" \
+            | awk -F'"' '/Developer ID Application/ {print $2; exit}')
+          [ -n "$IDENTITY" ] || { echo "no Developer ID identity in keychain"; exit 1; }
+          codesign --force --options runtime --timestamp \
+            --entitlements "Receptor/Receptor-macOS.entitlements" \
+            --sign "$IDENTITY" "build/$APP.app"
+          codesign --verify --deep --strict --verbose=2 "build/$APP.app"
+
+      - name: Verify entitlements survived the re-sign
+        run: |
+          codesign -d --entitlements - "build/$APP.app"
+          codesign -d --entitlements - "build/$APP.app" 2>/dev/null \
+            | grep -q "group.com.alexmiller.receptor" \
+            || { echo "app-group entitlement missing after re-sign"; exit 1; }
+
+      - name: Notarize and staple
+        run: |
+          ditto -c -k --keepParent "build/$APP.app" "build/$APP-notarize.zip"
+          printf '%s' "$ASC_KEY_P8_BASE64" | base64 -d > asc.p8
+          chmod 600 asc.p8
+          xcrun notarytool submit "build/$APP-notarize.zip" \
+            --key asc.p8 --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" \
+            --wait
+          rm -f asc.p8
+          xcrun stapler staple "build/$APP.app"
+          # Re-zip the stapled app — this is the release asset the cask installs.
+          ditto -c -k --keepParent "build/$APP.app" "build/$APP-$GITHUB_REF_NAME.zip"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "build/$APP-$GITHUB_REF_NAME.zip" \
+            --generate-notes
+
+      - name: Bump Homebrew cask
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA256=$(shasum -a 256 "build/$APP-$GITHUB_REF_NAME.zip" | awk '{print $1}')
+          git clone "https://x-access-token:${TAP_PUSH_TOKEN}@github.com/alexjmiller5/homebrew-tap.git" tap
+          cat > "tap/Casks/receptor.rb" <<EOF
+          cask "receptor" do
+            version "$VERSION"
+            sha256 "$SHA256"
+
+            url "https://github.com/$GITHUB_REPOSITORY/releases/download/v#{version}/$APP-v#{version}.zip"
+            name "$APP"
+            desc "Menu-bar thought capture that syncs to the Synapse backend"
+            homepage "https://github.com/$GITHUB_REPOSITORY"
+
+            app "$APP.app"
+          end
+          EOF
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "Casks/receptor.rb"
+          git commit -m "$APP $VERSION"
+          git push
+
+      - name: Delete temp keychain
+        if: always()
+        run: security delete-keychain "$KEYCHAIN" || true
