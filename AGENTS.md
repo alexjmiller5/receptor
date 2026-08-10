@@ -37,6 +37,15 @@ The `.xcodeproj` IS committed (this repo predates the XcodeGen templates — no 
 
 No test verb yet — the project has no test target.
 
+> **Shortcuts-actions gotcha:** every launched build (DerivedData, `build/`)
+> registers with LaunchServices under `com.alexmiller.receptor`. Deleting those
+> build dirs leaves dangling registrations that can shadow /Applications and
+> break macOS Shortcuts with "action could not be found" (bit us 2026-08-06).
+> Fix: `lsregister -u <dead path>` for each ghost, `lsregister -f
+> /Applications/Receptor.app`, relaunch the app. Check registrations with
+> `lsregister -dump | grep -E "^path:.*Receptor"` (lsregister lives under
+> `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/`).
+
 ## Signing
 
 **Signing material lives in 1Password (`Apple Signing` vault), not the keychain.** `just signing-setup` / `just signing-cleanup` cache and evict it; both must run from Alex's OWN terminal (desktop-authed `op`) — the claude-code service account cannot see that vault, so Claude pastes the command instead of running it. Team ID: `467A4PRB8F` (injected via CLI; the pbxproj carries no team).
