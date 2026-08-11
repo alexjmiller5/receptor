@@ -28,7 +28,7 @@ The `.xcodeproj` IS committed (this repo predates the XcodeGen templates — no 
 |---|---|
 | `just dev` | Open Xcode |
 | `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
-| `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) — **currently broken**, see below |
+| `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build + cable install (1-year Ad Hoc signing) |
 | `just signing-setup` | Pull Apple Distribution cert + wildcard profile from 1Password into the keychain |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
@@ -67,10 +67,12 @@ No test verb yet — the project has no test target.
 > macOS keeps the group container — its data lives there.
 > On iPhone reinstall: settings (API key/secret/intaker URL) must be re-entered
 > once, and data in the old group container is orphaned.
-> **Mode A (DEBUG) is still broken**: no Apple Development cert exists (the
-> expired one was deleted from the keychain 2026-08-01). Restoring it is an
-> optional Alex task: new dev cert + Xcode signed into the Apple ID (automatic
-> signing then handles the profile).
+> **Mode A (DEBUG) restored 2026-08-10**: fresh Apple Development cert in the
+> login keychain (expires 2027-08-11; the `(A695VJ97WN)` in its CN is a cert
+> identifier, team is still 467A4PRB8F in OU). Deliberately NOT stored in 1P —
+> dev certs are disposable; recreating one is a single Xcode click (Settings →
+> Accounts → Manage Certificates → + → Apple Development). First `just build`
+> with the iPhone connected lets automatic signing mint the dev profile.
 
 iOS build rules:
 
@@ -125,7 +127,7 @@ Receptor/
 
 ## Critical Rules
 
-1. **Ship changes down the right pipeline** - iOS: cable install via `just deploy` (or `just build` once Mode A works). macOS: test locally with `just mac-dev-run`; users get it by tagging a release — never hand-copy into /Applications
+1. **Ship changes down the right pipeline** - iOS: cable install via `just deploy` (or `just build` for the debug loop). macOS: test locally with `just mac-dev-run`; users get it by tagging a release — never hand-copy into /Applications
 2. **FIFO ordering** - Flush stops on first failure to preserve order
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
 4. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush
