@@ -19,7 +19,7 @@ jobs:
   release:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -33,7 +33,7 @@ jobs:
       # to provision/verify the vault + items, and names are its input (an ID can't name
       # a vault that doesn't exist yet). The ONE exception to the IDs-over-names rule -
       # do NOT convert these to IDs. See global AGENTS.md. Renamed an item? Update here.
-      - uses: 1password/load-secrets-action@v2
+      - uses: 1password/load-secrets-action@v5
         with:
           export-env: true
         env:
