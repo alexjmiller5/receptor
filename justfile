@@ -63,15 +63,17 @@ deploy:
 # service account cannot see the Apple Signing vault.
 signing-setup:
     #!/usr/bin/env bash
+    # IDs, not names (Apple Signing vault / Apple Distribution Cert + Wildcard Ad Hoc Profile)
+    # - rename-proof; see the IDs-over-names rule in global AGENTS.md.
     set -euo pipefail
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
-    op read "op://Apple Signing/Apple Distribution Cert/p12_base64" | base64 -d > "$tmp/dist.p12"
+    op read "op://xxbixvqoaicfykrbte6oh57ahq/fjlhndynlojmvcvhcei6qblsxm/p12_base64" | base64 -d > "$tmp/dist.p12"
     security import "$tmp/dist.p12" -k ~/Library/Keychains/login.keychain-db \
-      -P "$(op read "op://Apple Signing/Apple Distribution Cert/password")" \
+      -P "$(op read "op://xxbixvqoaicfykrbte6oh57ahq/fjlhndynlojmvcvhcei6qblsxm/password")" \
       -T /usr/bin/codesign -T /usr/bin/security
     rm "$tmp/dist.p12"
-    op read "op://Apple Signing/Wildcard Ad Hoc Profile/mobileprovision_base64" | base64 -d > "$tmp/profile.mobileprovision"
+    op read "op://xxbixvqoaicfykrbte6oh57ahq/npastowgp6rn5mybxeek5mqseu/mobileprovision_base64" | base64 -d > "$tmp/profile.mobileprovision"
     uuid=$(security cms -D -i "$tmp/profile.mobileprovision" | plutil -extract UUID raw -o - -)
     mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
              "$HOME/Library/MobileDevice/Provisioning Profiles"
