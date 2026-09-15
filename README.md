@@ -4,7 +4,9 @@ Thought capture for iPhone and Mac. Offline-first SwiftUI app: thoughts are
 saved locally (SwiftData) the instant you type them, then synced in FIFO
 order to the [Synapse](https://github.com/alexjmiller5/synapse) backend via a
 background-wake mechanism. On macOS it lives in the menu bar; on iOS it ships
-App Intents ("Recept") for Shortcuts-driven capture.
+App Intents ("Recept") for Shortcuts-driven capture. The "Recept" intent takes
+an optional Source label (a shortcut name, a hotkey, an agent) that is
+forwarded to the backend and logged with the capture.
 
 ## Install
 

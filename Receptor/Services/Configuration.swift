@@ -53,4 +53,24 @@ enum Configuration {
     static var isConfigured: Bool {
         apiKey != nil && proxySecret != nil && intakerURL != nil
     }
+
+    /// Only a complete http(s) URL with a host may be stored. Settings binds
+    /// this to every keystroke, so a half-typed or momentarily cleared field must
+    /// never replace a working URL (a nil URL silently rejects every capture).
+    static func validIntakerURL(_ string: String) -> URL? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmed),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
+    }
+
+    /// `source` label for thoughts typed into this app's own compose sheet.
+    static var appSource: String {
+        #if os(iOS)
+        "ios-app"
+        #else
+        "macos-app"
+        #endif
+    }
 }

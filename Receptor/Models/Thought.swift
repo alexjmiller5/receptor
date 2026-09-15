@@ -48,10 +48,14 @@ final class Thought {
     var lastError: String?
     var sentVia: SyncTrigger?
     var lockedUntil: Date?
+    /// Where the capture came from (app, a named shortcut, a hotkey, an agent).
+    /// Free-form, chosen by the caller; forwarded to Synapse as `source`.
+    var source: String?
 
-    init(text: String) {
+    init(text: String, source: String? = nil) {
         self.id = UUID()
         self.text = text
+        self.source = source
         self.createdAt = Date()
         self.sentAt = nil
         self.status = .queued
