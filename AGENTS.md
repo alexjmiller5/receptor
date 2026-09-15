@@ -92,6 +92,25 @@ iOS build rules:
 - **SyncManager** - Singleton that handles all sync operations, network monitoring, and background wake
 - **App Group** - `group.com.alexmiller.receptor`, **macOS only** (iOS dropped it for wildcard signing); all storage paths route through `Configuration.sharedContainerURL`
 
+## Source stamp
+
+Every thought carries an optional `source` (`Thought.source`), sent to Synapse
+as the `source` payload field and logged there. The compose sheet stamps
+`Configuration.appSource` (`ios-app` / `macos-app`); `CaptureThoughtIntent`
+exposes it as the optional "Source" parameter, and each shortcut in
+ios-shortcuts/notion passes its own label (`shortcut:<name>`, `hammerspoon`,
+`agent`). Free-form, never parsed by the app.
+
+## Failure surfacing
+
+- `Configuration.validIntakerURL` gates the Settings URL field: only a full
+  http(s) URL with a host is persisted, so a half-typed/cleared field never
+  nils the stored URL (that silently rejected six captures on 2026-09-04).
+- A `.rejected` (4xx) thought posts a local notification - it is never retried,
+  so it is the one silent-loss path. `.failed` sends stay quiet (they retry).
+- Not-configured posts one notification per process, and the intent returns
+  "Queued locally — Receptor is not configured" instead of a bare "Queued".
+
 ## Sync Flow
 
 1. User input → `queueThought()` saves to SwiftData immediately

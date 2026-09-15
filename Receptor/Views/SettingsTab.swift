@@ -105,7 +105,9 @@ struct SettingsTab: View {
                                     .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
                             )
                             .onChange(of: intakerURL) { _, newValue in
-                                Configuration.intakerURL = URL(string: newValue)
+                                if let url = Configuration.validIntakerURL(newValue) {
+                                    Configuration.intakerURL = url
+                                }
                             }
                     }
 
@@ -285,7 +287,9 @@ struct SettingsTab: View {
                     .autocorrectionDisabled()
                     .font(.system(.body, design: .monospaced))
                     .onChange(of: intakerURL) { _, newValue in
-                        Configuration.intakerURL = URL(string: newValue)
+                        if let url = Configuration.validIntakerURL(newValue) {
+                            Configuration.intakerURL = url
+                        }
                     }
             }
 

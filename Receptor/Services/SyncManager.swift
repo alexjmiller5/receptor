@@ -117,7 +117,7 @@ final class SyncManager: ObservableObject {
 
     /// Saves a thought to the database and fires off a queue flush.
     /// CaptureThoughtIntent calls this and returns "Queued" immediately.
-    func queueThought(_ text: String, trigger: SyncTrigger = .captureIntent) async {
+    func queueThought(_ text: String, trigger: SyncTrigger = .captureIntent, source: String? = nil) async {
         os_log("[SYNC] queueThought() — text='%{public}@' trigger=%{public}@ | %{public}@", log: syncLog_os, type: .default, String(text.prefix(30)), trigger.rawValue, processTag())
 
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -132,7 +132,7 @@ final class SyncManager: ObservableObject {
         }
 
         let context = container.mainContext
-        let thought = Thought(text: text)
+        let thought = Thought(text: text, source: source)
         context.insert(thought)
         saveContextWithErrorHandling(context)
 
@@ -175,6 +175,7 @@ final class SyncManager: ObservableObject {
               let baseURL = Configuration.intakerURL else {
             os_log("[UPLOAD] ABORT — not configured", log: uploadLog, type: .error)
             addLogEntry("UPLOAD-ABORT not configured", trigger: trigger)
+            notifyNotConfigured()
             return
         }
         guard let container = modelContainer else {
@@ -213,8 +214,7 @@ final class SyncManager: ObservableObject {
                 continue
             }
 
-            let payload = ["raw_text": thought.text]
-            guard let jsonData = try? JSONEncoder().encode(payload) else {
+            guard let jsonData = try? JSONEncoder().encode(Self.payload(for: thought)) else {
                 os_log("[UPLOAD] SKIP id=%{public}@ — JSON encode failed", log: uploadLog, type: .error, thoughtIdShort)
                 continue
             }
@@ -286,6 +286,7 @@ final class SyncManager: ObservableObject {
             thought.lastError = error?.localizedDescription ?? "HTTP \(statusCode)"
             os_log("[UPLOAD] FAILED id=%{public}@ status=%{public}@ error=%{public}@", log: uploadLog, type: .error, thoughtIdShort, thought.status.rawValue, thought.lastError ?? "unknown")
             addLogEntry("UPLOAD-FAILED id=\(thoughtIdShort) status=\(thought.status.rawValue) error=\(thought.lastError ?? "unknown")", trigger: .backgroundWake)
+            if thought.status == .rejected { notifyRejected(thought, code: statusCode) }
         }
 
         saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
@@ -552,6 +553,7 @@ final class SyncManager: ObservableObject {
               let baseURL = Configuration.intakerURL else {
             os_log("[HTTP] FAIL id=%{public}@ reason=not_configured | %{public}@", log: httpLog, type: .error, thoughtIdShort, processTag())
             addLogEntry("SEND-FAIL id=\(thoughtIdShort) reason=not_configured", trigger: trigger)
+            notifyNotConfigured()
             return false
         }
 
@@ -569,8 +571,7 @@ final class SyncManager: ObservableObject {
         request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
         request.timeoutInterval = 30
 
-        let payload = ["raw_text": thought.text]
-        request.httpBody = try? JSONEncoder().encode(payload)
+        request.httpBody = try? JSONEncoder().encode(Self.payload(for: thought))
 
         thought.status = .sending
         addLogEntry("STATUS→sending id=\(thoughtIdShort)", trigger: trigger)
@@ -588,6 +589,7 @@ final class SyncManager: ObservableObject {
                 os_log("[HTTP] FAIL id=%{public}@ code=%d status=%{public}@", log: httpLog, type: .error, thoughtIdShort, statusCode, thought.status.rawValue)
                 addLogEntry("HTTP-FAIL id=\(thoughtIdShort) code=\(statusCode) status=\(thought.status.rawValue)", trigger: trigger)
                 saveContextWithErrorHandling(modelContainer?.mainContext, thoughtId: thoughtIdShort)
+                if thought.status == .rejected { notifyRejected(thought, code: statusCode) }
                 return false
             }
 
@@ -756,6 +758,38 @@ final class SyncManager: ObservableObject {
 
     static func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+    }
+
+    /// Webhook body. `source` is only sent when the caller stamped one.
+    static func payload(for thought: Thought) -> [String: String] {
+        var payload = ["raw_text": thought.text]
+        if let source = thought.source, !source.isEmpty { payload["source"] = source }
+        return payload
+    }
+
+    // A rejected (4xx) thought is never retried, so it is the one failure that
+    // would otherwise be silent — the 2026-09-04 lost-URL incident dropped six
+    // captures this way. Transient .failed sends retry on their own; no noise.
+    private func notifyRejected(_ thought: Thought, code: Int) {
+        Task {
+            await sendNotification(
+                title: "Receptor: thought rejected (HTTP \(code))",
+                body: "Not retried — check the Intaker URL and tokens in Settings. \"\(thought.text.prefix(60))\""
+            )
+        }
+    }
+
+    // ponytail: once per process — every flush trigger would re-fire it otherwise.
+    private var warnedNotConfigured = false
+    private func notifyNotConfigured() {
+        guard !warnedNotConfigured else { return }
+        warnedNotConfigured = true
+        Task {
+            await sendNotification(
+                title: "Receptor is not configured",
+                body: "Thoughts are queued locally. Enter the Intaker URL and Modal tokens in Settings."
+            )
+        }
     }
 
     private func sendNotification(count: Int, trigger: SyncTrigger) async {

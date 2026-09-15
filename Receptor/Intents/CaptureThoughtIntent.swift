@@ -14,8 +14,15 @@ struct CaptureThoughtIntent: AppIntent {
     @Parameter(title: "Thought")
     var text: String
 
+    /// Who is sending: a shortcut passes its own name, a hotkey or agent its
+    /// label. Logged on the Synapse execution as `Source`; free-form.
+    @Parameter(title: "Source", description: "Where this thought comes from (shortcut name, hotkey, agent)")
+    var source: String?
+
     static var parameterSummary: some ParameterSummary {
-        Summary("Recept \(\.$text)")
+        Summary("Recept \(\.$text)") {
+            \.$source
+        }
     }
 
     @MainActor
@@ -42,15 +49,18 @@ struct CaptureThoughtIntent: AppIntent {
         }
 
         // 1. Instant Persistence - save to shared database
-        await SyncManager.shared.queueThought(text)
+        await SyncManager.shared.queueThought(text, source: source)
 
         // The queueThought method already triggers background upload
         // We return immediately - the background session handles the rest
 
-        os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning 'Queued'", log: intentLog, type: .default)
-
-        // 2. Instant User Feedback
-        return .result(value: "Queued")
+        // 2. Instant User Feedback — "Queued" must not read as "delivered" when
+        // the app has no URL/tokens: nothing will ever leave the queue.
+        let result = Configuration.isConfigured
+            ? "Queued"
+            : "Queued locally — Receptor is not configured (open Settings)"
+        os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
+        return .result(value: result)
     }
 }
 

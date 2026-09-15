@@ -112,7 +112,7 @@ struct ComposeView: View {
 
     private func send() {
         Task {
-            await syncManager.queueThought(trimmedText, trigger: .composeButton)
+            await syncManager.queueThought(trimmedText, trigger: .composeButton, source: Configuration.appSource)
             dismiss()
         }
     }
