@@ -21,6 +21,8 @@ enum SyncTrigger: String, Codable {
     case pullToRefresh = "Pull to Refresh"
     case composeButton = "Compose Button"
     case backgroundWake = "Background Wake"
+    case shareExtension = "Share Sheet"
+    case deepLink = "Deep Link"
 
     var codeName: String {
         switch self {
@@ -33,6 +35,8 @@ enum SyncTrigger: String, Codable {
         case .manualRetry: "manualRetry"
         case .pullToRefresh: "pullToRefresh"
         case .backgroundWake: "backgroundSession.uploadTask()"
+        case .shareExtension: "ShareCapture.enqueue()"
+        case .deepLink: "DeepLink.recept"
         }
     }
 }
@@ -51,6 +55,13 @@ final class Thought {
     /// Where the capture came from (app, a named shortcut, a hotkey, an agent).
     /// Free-form, chosen by the caller; forwarded to Synapse as `source`.
     var source: String?
+
+    /// Webhook body. `source` is only sent when the caller stamped one.
+    var uploadPayload: [String: String] {
+        var payload = ["raw_text": text]
+        if let source, !source.isEmpty { payload["source"] = source }
+        return payload
+    }
 
     init(text: String, source: String? = nil) {
         self.id = UUID()

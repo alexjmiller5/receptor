@@ -35,6 +35,21 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         false
     }
 
+    /// receptor:// links (Hammerspoon, the agent skill). Handled here rather than
+    /// with .onOpenURL so a `recept` link never surfaces the window.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            guard let link = DeepLink.parse(url) else { continue }
+            switch link {
+            case .compose:
+                showMainWindow()
+                ComposeRouter.shared.showCompose = true
+            case .recept(let text, let source):
+                Task { await SyncManager.shared.queueThought(text, trigger: .deepLink, source: source) }
+            }
+        }
+    }
+
     private var mainWindow: NSWindow? {
         NSApp.windows.first { $0.identifier?.rawValue == "main" }
     }

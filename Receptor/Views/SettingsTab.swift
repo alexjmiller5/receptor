@@ -42,6 +42,8 @@ struct SettingsTab: View {
     private var iOSSettings: some View {
         NavigationStack {
             Form {
+                captureSection
+                shareDefaultsSection
                 connectionSection
                 requestFormatSection
                 queueStatisticsSection
@@ -272,6 +274,59 @@ struct SettingsTab: View {
     #endif
 
     // iOS sections
+    #if os(iOS)
+    @State private var openToCompose = Configuration.openToCompose
+    @State private var domainContexts = Configuration.domainContexts
+    @State private var newDomain = ""
+    @State private var newContext = ""
+
+    private var captureSection: some View {
+        Section {
+            Toggle("Open to a new thought", isOn: $openToCompose)
+                .onChange(of: openToCompose) { _, value in Configuration.openToCompose = value }
+        } header: {
+            Text("Capture")
+        } footer: {
+            Text("The app icon, the Lock Screen widget and the Control Center button all land on a new thought.")
+        }
+    }
+
+    private var shareDefaultsSection: some View {
+        Section {
+            ForEach(domainContexts.keys.sorted(), id: \.self) { domain in
+                LabeledContent(domain) { Text(domainContexts[domain] ?? "").foregroundStyle(.secondary) }
+            }
+            .onDelete { offsets in
+                let keys = domainContexts.keys.sorted()
+                for i in offsets { domainContexts.removeValue(forKey: keys[i]) }
+                Configuration.domainContexts = domainContexts
+            }
+            HStack {
+                TextField("maps.app.goo.gl", text: $newDomain)
+                    .textContentType(.URL)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                TextField("context", text: $newContext)
+                    .autocorrectionDisabled()
+                Button {
+                    let d = newDomain.trimmingCharacters(in: .whitespaces).lowercased()
+                    let c = newContext.trimmingCharacters(in: .whitespaces)
+                    guard !d.isEmpty, !c.isEmpty else { return }
+                    domainContexts[d] = c
+                    Configuration.domainContexts = domainContexts
+                    newDomain = ""; newContext = ""
+                } label: { Image(systemName: "plus.circle.fill") }
+                .disabled(newDomain.trimmingCharacters(in: .whitespaces).isEmpty || newContext.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        } header: {
+            Text("Share Sheet Default Context")
+        } footer: {
+            Text("When a shared link's host matches, the context field is pre-filled (sent as \"link $ context\").")
+        }
+    }
+    #endif
+
     private var connectionSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {

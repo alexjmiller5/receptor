@@ -1,0 +1,122 @@
+# XcodeGen spec - the .xcodeproj is GENERATED from this file (`just gen`) and
+# committed so CI can build without xcodegen. Edit here, never in Xcode's
+# project editor.
+name: Receptor
+options:
+  deploymentTarget:
+    iOS: "18.0"    # ControlWidget (Control Center) needs 18
+    macOS: "14.0"
+  xcodeVersion: "26.0"
+  generateEmptyDirectories: false
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_EMIT_LOC_STRINGS: YES
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.2.0
+    # Team is injected on the command line (justfile / CI); never committed.
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+  configs:
+    debug:
+      ONLY_ACTIVE_ARCH: YES
+      ENABLE_TESTABILITY: YES
+targets:
+  Receptor:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources: [Receptor, Shared]
+    dependencies:
+      - target: ReceptorShare
+        platformFilter: iOS
+      - target: ReceptorWidgets
+        platformFilter: iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor
+        PRODUCT_NAME: Receptor
+        # XcodeGen leaves SUPPORTED_PLATFORMS empty for multi-destination targets
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator macosx
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGN_ENTITLEMENTS: Receptor/Receptor.entitlements
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Receptor/Receptor-macOS.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]": "$(inherited) @executable_path/../Frameworks"
+      configs:
+        Release:
+          # Ad Hoc profile per target - `just deploy` only flips CODE_SIGN_STYLE
+          # to Manual; the names live here because one CLI override cannot
+          # name three profiles.
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Ad Hoc
+    info:
+      path: Receptor/Info.plist
+      properties:
+        CFBundleDisplayName: Receptor
+        LSUIElement: true
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        BGTaskSchedulerPermittedIdentifiers: [com.alexmiller.receptor.sync]
+        ITSAppUsesNonExemptEncryption: false
+        # receptor://compose (open a new thought) and
+        # receptor://recept?text=...&source=... (queue + send) - see Shared/DeepLink.swift
+        CFBundleURLTypes:
+          - CFBundleURLName: com.alexmiller.receptor
+            CFBundleURLSchemes: [receptor]
+  ReceptorShare:
+    type: app-extension
+    platform: iOS
+    sources: [ReceptorShare, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.share
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator
+        PRODUCT_NAME: ReceptorShare
+        CODE_SIGN_ENTITLEMENTS: ReceptorShare/ReceptorShare.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Share Ad Hoc
+    info:
+      path: ReceptorShare/Info.plist
+      properties:
+        CFBundleDisplayName: Receptor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+  ReceptorWidgets:
+    type: app-extension
+    platform: iOS
+    sources: [ReceptorWidgets, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.widgets
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator
+        PRODUCT_NAME: ReceptorWidgets
+        CODE_SIGN_ENTITLEMENTS: ReceptorWidgets/ReceptorWidgets.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Widgets Ad Hoc
+    info:
+      path: ReceptorWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Receptor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+schemes:
+  Receptor:
+    build:
+      targets:
+        Receptor: all
