@@ -23,6 +23,14 @@ enum SyncTrigger: String, Codable {
     case backgroundWake = "Background Wake"
     case shareExtension = "Share Sheet"
     case deepLink = "Deep Link"
+    /// A value written by a newer build. Decoding must never fail: an unknown
+    /// raw value in the shared store would otherwise crash every launch.
+    case unknown = "Unknown"
+
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = SyncTrigger(rawValue: raw) ?? .unknown
+    }
 
     var codeName: String {
         switch self {
@@ -37,6 +45,7 @@ enum SyncTrigger: String, Codable {
         case .backgroundWake: "backgroundSession.uploadTask()"
         case .shareExtension: "ShareCapture.enqueue()"
         case .deepLink: "DeepLink.recept"
+        case .unknown: "?"
         }
     }
 }
