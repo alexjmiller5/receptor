@@ -3,7 +3,7 @@ import SwiftData
 
 struct ThoughtsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
-    @State private var showingCompose = false
+    @EnvironmentObject private var router: ComposeRouter
 
     var body: some View {
         NavigationStack {
@@ -26,7 +26,7 @@ struct ThoughtsTab: View {
                     }
                     #endif
                 }
-                .sheet(isPresented: $showingCompose) {
+                .sheet(isPresented: $router.showCompose) {
                     ComposeView()
                 }
         }
@@ -52,7 +52,7 @@ struct ThoughtsTab: View {
             }
 
             Button {
-                showingCompose = true
+                router.showCompose = true
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)

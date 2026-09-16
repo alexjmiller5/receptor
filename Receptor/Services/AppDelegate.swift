@@ -54,7 +54,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
-        let matches = identifier == SyncManager.backgroundSessionIdentifier
+        let matches = SyncManager.backgroundSessionIdentifiers.contains(identifier)
         os_log("[LIFECYCLE] handleEventsForBackgroundURLSession — identifier=%{public}@ matches=%{public}d pid=%d proc=%{public}@", log: lifecycleLog, type: .default, identifier, matches ? 1 : 0, pid, proc)
         DebugFileLog.write("[LIFECYCLE] handleEventsForBackgroundURLSession id=\(identifier) matches=\(matches) pid=\(pid)")
 
@@ -67,8 +67,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                     os_log("[LIFECYCLE] modelContainer is nil — creating for background session delivery", log: lifecycleLog, type: .default)
                     DebugFileLog.write("[LIFECYCLE] Creating modelContainer for background session delivery")
                     do {
-                        let dbURL = Configuration.sharedContainerURL!.appendingPathComponent("Receptor.sqlite")
-                        let config = ModelConfiguration(url: dbURL)
+                        let config = ModelConfiguration(url: Configuration.storeURL!)
                         let container = try ModelContainer(for: Thought.self, SyncLogEntry.self, configurations: config)
                         SyncManager.shared.configure(with: container)
                         os_log("[LIFECYCLE] modelContainer created successfully for background delivery", log: lifecycleLog, type: .default)

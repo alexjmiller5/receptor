@@ -48,21 +48,6 @@ final class SyncManager: ObservableObject {
     /// Called when all background session tasks finish.
     var backgroundSessionCompletionHandler: (() -> Void)?
 
-    // MARK: - Upload File Helpers
-
-    /// Directory for temporary upload payload files.
-    static var uploadsDirectory: URL? {
-        guard let container = Configuration.sharedContainerURL else { return nil }
-        let dir = container.appendingPathComponent("uploads", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir
-    }
-
-    /// File URL for a specific thought's upload payload.
-    static func uploadFileURL(for thoughtId: UUID) -> URL? {
-        uploadsDirectory?.appendingPathComponent("\(thoughtId.uuidString).json")
-    }
-
     /// Lazy-init background URLSession. Reconnecting after relaunch picks up in-flight tasks.
     private lazy var backgroundSession: URLSession = {
         os_log("[SYNC] backgroundSession lazy init — creating session %{public}@ | %{public}@", log: syncLog_os, type: .default, Self.backgroundSessionIdentifier, processTag())
@@ -73,6 +58,20 @@ final class SyncManager: ObservableObject {
         os_log("[SYNC] backgroundSession config: discretionary=%{public}d, launchEvents=%{public}d, waitsForConnectivity=%{public}d", log: syncLog_os, type: .default, config.isDiscretionary ? 1 : 0, config.sessionSendsLaunchEvents ? 1 : 0, config.waitsForConnectivity ? 1 : 0)
         return URLSession(configuration: config, delegate: backgroundSessionDelegate, delegateQueue: nil)
     }()
+
+    /// The share extension's upload session. The extension creates tasks on it
+    /// and exits; the app re-creates the session by identifier so the same
+    /// delegate receives their completions (ShareCapture.swift).
+    private lazy var shareSession: URLSession = {
+        let config = URLSessionConfiguration.background(withIdentifier: ShareCapture.backgroundSessionIdentifier)
+        config.sharedContainerIdentifier = Configuration.appGroupIdentifier
+        config.isDiscretionary = false
+        config.sessionSendsLaunchEvents = true
+        config.waitsForConnectivity = true
+        return URLSession(configuration: config, delegate: backgroundSessionDelegate, delegateQueue: nil)
+    }()
+
+    static let backgroundSessionIdentifiers = [backgroundSessionIdentifier, ShareCapture.backgroundSessionIdentifier]
 
     private let backgroundSessionDelegate = BackgroundSessionDelegate()
 
@@ -95,6 +94,9 @@ final class SyncManager: ObservableObject {
         os_log("[SYNC] reconnectBackgroundSession() — touching session | %{public}@", log: syncLog_os, type: .default, processTag())
         DebugFileLog.write("[SYNC] reconnectBackgroundSession()")
         _ = backgroundSession
+        #if os(iOS)
+        _ = shareSession
+        #endif
         os_log("[SYNC] reconnectBackgroundSession() — done", log: syncLog_os, type: .default)
     }
 
@@ -209,12 +211,12 @@ final class SyncManager: ObservableObject {
             let thoughtIdShort = String(thought.id.uuidString.prefix(8))
 
             // Write payload to temp file (background uploads require fromFile:)
-            guard let fileURL = Self.uploadFileURL(for: thought.id) else {
+            guard let fileURL = Configuration.uploadFileURL(for: thought.id) else {
                 os_log("[UPLOAD] SKIP id=%{public}@ — can't get upload file URL", log: uploadLog, type: .error, thoughtIdShort)
                 continue
             }
 
-            guard let jsonData = try? JSONEncoder().encode(Self.payload(for: thought)) else {
+            guard let jsonData = try? JSONEncoder().encode(thought.uploadPayload) else {
                 os_log("[UPLOAD] SKIP id=%{public}@ — JSON encode failed", log: uploadLog, type: .error, thoughtIdShort)
                 continue
             }
@@ -292,7 +294,7 @@ final class SyncManager: ObservableObject {
         saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
 
         // Clean up temp file
-        if let fileURL = Self.uploadFileURL(for: thoughtId) {
+        if let fileURL = Configuration.uploadFileURL(for: thoughtId) {
             try? FileManager.default.removeItem(at: fileURL)
         }
     }
@@ -385,9 +387,14 @@ final class SyncManager: ObservableObject {
             return
         }
 
-        // Check background session for active tasks
-        backgroundSession.getAllTasks { [weak self] tasks in
-            let activeTaskIds = Set(tasks.compactMap { $0.taskDescription })
+        // Check both background sessions for active tasks (a share-sheet upload
+        // still in flight is not an orphan)
+        let sessions = [backgroundSession, shareSession]
+        Task { [weak self] in
+            var activeTaskIds = Set<String>()
+            for session in sessions {
+                for task in await session.allTasks { if let id = task.taskDescription { activeTaskIds.insert(id) } }
+            }
 
             Task { @MainActor in
                 guard let self else { return }
@@ -402,7 +409,7 @@ final class SyncManager: ObservableObject {
                         recoveredCount += 1
 
                         // Clean up stale upload file
-                        if let fileURL = Self.uploadFileURL(for: thought.id) {
+                        if let fileURL = Configuration.uploadFileURL(for: thought.id) {
                             try? FileManager.default.removeItem(at: fileURL)
                         }
                     }
@@ -571,7 +578,7 @@ final class SyncManager: ObservableObject {
         request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
         request.timeoutInterval = 30
 
-        request.httpBody = try? JSONEncoder().encode(Self.payload(for: thought))
+        request.httpBody = try? JSONEncoder().encode(thought.uploadPayload)
 
         thought.status = .sending
         addLogEntry("STATUS→sending id=\(thoughtIdShort)", trigger: trigger)
@@ -758,13 +765,6 @@ final class SyncManager: ObservableObject {
 
     static func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
-    }
-
-    /// Webhook body. `source` is only sent when the caller stamped one.
-    static func payload(for thought: Thought) -> [String: String] {
-        var payload = ["raw_text": thought.text]
-        if let source = thought.source, !source.isEmpty { payload["source"] = source }
-        return payload
     }
 
     // A rejected (4xx) thought is never retried, so it is the one failure that

@@ -22,8 +22,11 @@ struct ReceptorApp: App {
         DebugFileLog.write("[APP] ReceptorApp.init() ENTRY pid=\(pid) proc=\(proc)")
 
         do {
-            // Use shared App Group container for SwiftData
-            let dbURL = Configuration.sharedContainerURL!.appendingPathComponent("Receptor.sqlite")
+            #if os(iOS)
+            Configuration.migrateLegacyContainerIfNeeded()
+            #endif
+            // Shared App Group container for SwiftData (extensions write to it too)
+            let dbURL = Configuration.storeURL!
             os_log("[APP] ReceptorApp.init() — DB path=%{public}@", log: appLog, type: .default, dbURL.path)
 
             let config = ModelConfiguration(url: dbURL)
@@ -56,6 +59,7 @@ struct ReceptorApp: App {
         Window("Receptor", id: "main") {
             MacContentView()
                 .environmentObject(SyncManager.shared)
+                .environmentObject(ComposeRouter.shared)
                 .modelContainer(container)
                 .onAppear {
                     SyncManager.shared.requestFlush(trigger: .appBecameActive)
@@ -78,9 +82,11 @@ struct ReceptorApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(SyncManager.shared)
+                .environmentObject(ComposeRouter.shared)
                 .onAppear {
                     SyncManager.shared.requestFlush(trigger: .appBecameActive)
                 }
+                .onOpenURL { url in ComposeRouter.shared.handle(url) }
         }
         .modelContainer(container)
         #endif
@@ -121,7 +127,7 @@ struct MacContentView: View {
 // macOS-specific ThoughtsTab without the toolbar issues
 struct MacThoughtsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
-    @State private var showingCompose = false
+    @EnvironmentObject private var router: ComposeRouter
 
     var body: some View {
         VStack(spacing: 0) {
@@ -145,7 +151,7 @@ struct MacThoughtsTab: View {
                 }
 
                 Button {
-                    showingCompose = true
+                    router.showCompose = true
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
@@ -160,7 +166,7 @@ struct MacThoughtsTab: View {
 
             ThoughtListView()
         }
-        .sheet(isPresented: $showingCompose) {
+        .sheet(isPresented: $router.showCompose) {
             ComposeView()
         }
     }

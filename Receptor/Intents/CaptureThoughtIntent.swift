@@ -40,9 +40,7 @@ struct CaptureThoughtIntent: AppIntent {
             os_log("[INTENT] CaptureThoughtIntent — creating ModelContainer (force-quit scenario)", log: intentLog, type: .default)
             let container = try ModelContainer(
                 for: Thought.self, SyncLogEntry.self,
-                configurations: ModelConfiguration(
-                    url: Configuration.sharedContainerURL!.appendingPathComponent("Receptor.sqlite")
-                )
+                configurations: ModelConfiguration(url: Configuration.storeURL!)
             )
             SyncManager.shared.configure(with: container)
             os_log("[INTENT] CaptureThoughtIntent — ModelContainer created and configured", log: intentLog, type: .default)

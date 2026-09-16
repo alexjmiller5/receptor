@@ -6,6 +6,17 @@ This file provides guidance to coding agents when working with code in this repo
 
 Receptor is a multi-platform SwiftUI app (iOS/macOS) that captures thoughts and syncs them to the Synapse backend. It uses an offline-first architecture where thoughts are persisted locally in SwiftData and synced reliably via a background wake mechanism.
 
+Every capture surface is native - there are no Shortcuts in the loop:
+
+| Surface | Target | Mechanism |
+|---|---|---|
+| App icon (Home Screen) | Receptor | `Configuration.openToCompose` (default on) shows the compose sheet on every activation |
+| Lock Screen widget | ReceptorWidgets | accessory widget, `widgetURL(receptor://compose)` |
+| Control Center button | ReceptorWidgets | `ControlWidgetButton(OpenComposeIntent)` - `openAppWhenRun` + the `pendingCompose` flag in group defaults |
+| Share sheet | ReceptorShare | `ShareViewController` → `ShareCapture.enqueue` (shared store + its own background upload session) |
+| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`; `receptor://compose` opens the window |
+| Siri / Action Button | Receptor | App Shortcuts (`CaptureThoughtIntent`, `ReceptQueueIntent`) |
+
 See the Synapse repo's `../synapse/AGENTS.md` for comprehensive documentation including architecture and the sync model.
 
 ## One repo, two pipelines
@@ -20,17 +31,24 @@ One Xcode target builds both platforms (`SDKROOT = auto`); the two platforms shi
 
 **The old macOS rm-cp-codesign deploy one-liner is dead.** /Applications/Receptor.app comes from the cask after a tagged release; never copy a build there by hand. After pushing a tag, verify with `gh run watch <id> --exit-status` — never assume the release succeeded.
 
-The `.xcodeproj` IS committed (this repo predates the XcodeGen templates — no `project.yml`, no `just gen`). The shared scheme lives at `Receptor.xcodeproj/xcshareddata/xcschemes/Receptor.xcscheme` (CI depends on it); `xcuserdata/` is gitignored.
+The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Three targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`), `ReceptorShare` and `ReceptorWidgets` (iOS-only app extensions, embedded with `platformFilter: iOS` so the macOS build ignores them). `Shared/` is compiled into all three. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
+
+> **iCloud gotcha:** the repo lives under `~/Desktop` (iCloud). Never point
+> `-derivedDataPath` inside the repo for a signed build - iCloud stamps
+> extended attributes on the products and `codesign` fails with "resource
+> fork, Finder information, or similar detritus". The default
+> `~/Library/Developer/Xcode/DerivedData` is fine (the justfile uses it).
 
 ## Commands
 
 | Command | Purpose |
 |---|---|
+| `just gen` | Regenerate `Receptor.xcodeproj` from `project.yml` (every other verb runs it first) |
 | `just dev` | Open Xcode |
 | `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build + cable install (1-year Ad Hoc signing) |
-| `just signing-setup` | Pull Apple Distribution cert + wildcard profile from 1Password into the keychain |
+| `just signing-setup` | Pull the Apple Distribution cert + the three Ad Hoc profiles from 1Password into the keychain / profile dirs |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
 | `just mac-dev-run` | Local macOS testing from `build/`, no /Applications install |
@@ -51,28 +69,18 @@ No test verb yet — the project has no test target.
 **Signing material lives in 1Password (`Apple Signing` vault), not the keychain.** `just signing-setup` / `just signing-cleanup` cache and evict it; both must run from Alex's OWN terminal (desktop-authed `op`) — the claude-code service account cannot see that vault, so Claude pastes the command instead of running it. Team ID: `467A4PRB8F` (injected via CLI; the pbxproj carries no team).
 
 - **macOS (CI)**: Developer ID Application cert + hardened runtime + notarization, in `release-macos.yml`. The macOS entitlements file (`Receptor/Receptor-macOS.entitlements`: app group `group.com.alexmiller.receptor`, sandbox off) is passed explicitly to `codesign` — app groups work with Developer ID without a provisioning profile, and the workflow fails if the entitlement doesn't survive the re-sign.
-- **iOS**: two modes, manual profiles, never `-allowProvisioningUpdates` for STABLE:
+- **iOS**: explicit App IDs (`com.alexmiller.receptor`, `.share`, `.widgets`), each with the App Groups capability configured to `group.com.alexmiller.receptor` in the developer portal (portal-only step: Xcode's automatic signing registers the App IDs and the capability but cannot assign the group; the App Store Connect API cannot either). Two modes, manual profiles, never `-allowProvisioningUpdates` for STABLE:
 
 | Mode | Recipe | Signing | Validity | Logs |
 |---|---|---|---|---|
 | A: DEBUG (dev loop) | `just build` | Automatic, Apple Development | 7 days | readable |
-| B: STABLE (daily use) | `just deploy` | Manual, Apple Distribution + `"Alexander Wildcard Ad Hoc"` | 1 year | stripped |
+| B: STABLE (daily use) | `just deploy` | Manual, Apple Distribution + one Ad Hoc profile per target (`Receptor Ad Hoc`, `Receptor Share Ad Hoc`, `Receptor Widgets Ad Hoc`, named in `project.yml`) | until the Distribution cert expires | stripped |
 
-> **Signing status (2026-08-01, still current):** iOS STABLE uses the team-wide
-> wildcard profile `"Alexander Wildcard Ad Hoc"` (`com.alexmiller.*`, expires
-> 2027-02-13) with the Apple Distribution cert. To make that possible the App
-> Groups entitlement was dropped from the **iOS** build (wildcard App IDs can't
-> carry it; `Receptor/Receptor.entitlements` is empty); iOS stores SwiftData +
-> settings in the app's own container via `Configuration.sharedContainerURL`.
-> macOS keeps the group container — its data lives there.
-> On iPhone reinstall: settings (API key/secret/intaker URL) must be re-entered
-> once, and data in the old group container is orphaned.
-> **Mode A (DEBUG) restored 2026-08-10**: fresh Apple Development cert in the
-> login keychain (expires 2027-08-11; the `(A695VJ97WN)` in its CN is a cert
-> identifier, team is still 467A4PRB8F in OU). Deliberately NOT stored in 1P —
-> dev certs are disposable; recreating one is a single Xcode click (Settings →
-> Accounts → Manage Certificates → + → Apple Development). First `just build`
-> with the iPhone connected lets automatic signing mint the dev profile.
+Ad Hoc profiles are minted by `scripts/asc-adhoc-profiles.py` (App Store Connect API; `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_KEY_P8` env, device UDIDs via `ASC_TEAM_DEVICE_UDIDS`) and stored as one item in the `Apple Signing` vault (`Receptor Ad Hoc Profiles`, three `*_mobileprovision_base64` fields; id in the justfile). Re-run the script + update the item when the cert rotates or a device is added.
+
+> Mode A (DEBUG) needs an Apple Development cert in the login keychain and Xcode
+> signed in to the team; dev certs are disposable (Xcode → Settings → Accounts
+> → Manage Certificates → +) and deliberately not stored in 1Password.
 
 iOS build rules:
 
@@ -90,7 +98,8 @@ iOS build rules:
 - **Thought** - The core data model (`Models/Thought.swift`), persisted in SwiftData
 - **Recept** - The verb for capturing and sending a thought (e.g., `receptThought()`)
 - **SyncManager** - Singleton that handles all sync operations, network monitoring, and background wake
-- **App Group** - `group.com.alexmiller.receptor`, **macOS only** (iOS dropped it for wildcard signing); all storage paths route through `Configuration.sharedContainerURL`
+- **App Group** - `group.com.alexmiller.receptor` on both platforms; the SwiftData store, settings (`Configuration.sharedDefaults`), upload payload files and the debug log all live in the group container so the share extension and widgets see them. iOS migrates a pre-App-Group install once (`Configuration.migrateLegacyContainerIfNeeded`).
+- **Share extension upload** - the extension cannot wait for a response, so `ShareCapture` marks the thought `.sending` and hands the upload to a background `URLSession` with its own identifier; the app re-creates that session on launch (`SyncManager.backgroundSessionIdentifiers`) so the same delegate marks the thought sent/rejected
 
 ## Source stamp
 
@@ -131,22 +140,29 @@ ios-shortcuts/notion passes its own label (`shortcut:<name>`, `hammerspoon`,
 ## Code Organization
 
 ```
-Receptor/
-├── Models/Thought.swift       # SwiftData model + ThoughtStatus/SyncTrigger enums
-├── Services/
-│   ├── SyncManager.swift      # Core sync logic, network monitoring, background wake
-│   ├── Configuration.swift    # App Group container, API key/URL storage
-│   └── AppDelegate.swift      # iOS-only: background task registration
-├── Intents/
-│   ├── CaptureThoughtIntent.swift  # "Recept" - fire-and-forget
-│   └── ReceptQueueIntent.swift     # "Recept Thought Queue" - flush trigger
-├── Views/                     # ThoughtsTab, SettingsTab, ThoughtListView, etc.
-└── macOS/                     # MenuBarView, LoginItemManager
+project.yml                    # XcodeGen spec (targets, Info.plist keys, profile names)
+Shared/                        # compiled into the app AND both extensions
+├── Thought.swift              # SwiftData model + ThoughtStatus/SyncTrigger, uploadPayload
+├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
+├── DeepLink.swift             # receptor://compose and receptor://recept parsing
+├── ShareCapture.swift         # extension-side enqueue + background upload
+├── OpenComposeIntent.swift    # Control Center button intent
+└── DebugFileLog.swift
+Receptor/                      # the app (iOS + macOS)
+├── Services/SyncManager.swift # Core sync logic, network monitoring, background wake
+├── Services/AppDelegate.swift # iOS-only: background task registration, session events
+├── Intents/                   # App Shortcuts (CaptureThoughtIntent, ReceptQueueIntent)
+├── Views/                     # ContentView, ThoughtsTab, ComposeView, ComposeRouter, SettingsTab, ...
+└── macOS/                     # MenuBarView (status item + deep links), LoginItemManager
+ReceptorShare/                 # share extension (ShareViewController + ShareView)
+ReceptorWidgets/               # Lock Screen widget + Control Center control
+scripts/asc-adhoc-profiles.py  # mint the three Ad Hoc profiles
 ```
 
 ## Critical Rules
 
 1. **Ship changes down the right pipeline** - iOS: cable install via `just deploy` (or `just build` for the debug loop). macOS: test locally with `just mac-dev-run`; users get it by tagging a release — never hand-copy into /Applications
 2. **FIFO ordering** - Flush stops on first failure to preserve order
+6. **Every thought carries a `source`** (`Thought.source`, sent as the `source` payload field and logged by Synapse): `ios-app` / `macos-app` (compose sheet), `share-sheet`, `hammerspoon` / `agent` (deep links), plus whatever a Siri/App Shortcut caller passes. Free-form, never parsed by the app
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
 4. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush
