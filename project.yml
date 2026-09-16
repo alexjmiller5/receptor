@@ -56,6 +56,8 @@ targets:
       path: Receptor/Info.plist
       properties:
         CFBundleDisplayName: Receptor
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         UILaunchScreen: {}
         UIApplicationSupportsIndirectInputEvents: true
@@ -87,6 +89,8 @@ targets:
       path: ReceptorShare/Info.plist
       properties:
         CFBundleDisplayName: Receptor
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
@@ -113,6 +117,8 @@ targets:
       path: ReceptorWidgets/Info.plist
       properties:
         CFBundleDisplayName: Receptor
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
 schemes:
