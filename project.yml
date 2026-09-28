@@ -30,7 +30,9 @@ targets:
     dependencies:
       - target: ReceptorShare
         platformFilter: iOS
-      - target: ReceptorWidgets
+      - target: ReceptorSend
+        platformFilter: iOS
+      - target: ReceptorPrefilled
         platformFilter: iOS
     settings:
       base:
@@ -70,6 +72,9 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: com.alexmiller.receptor
             CFBundleURLSchemes: [receptor]
+  # Share-sheet ACTION extensions (the list below the app row), one entry per
+  # capture mode, mirroring the three Shortcuts they replace. Share extensions
+  # would land in the app row instead - keep these as ui-services.
   ReceptorShare:
     type: app-extension
     platform: iOS
@@ -80,7 +85,7 @@ targets:
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: iphoneos iphonesimulator
         PRODUCT_NAME: ReceptorShare
-        CODE_SIGN_ENTITLEMENTS: ReceptorShare/ReceptorShare.entitlements
+        CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
       configs:
         Release:
@@ -88,39 +93,72 @@ targets:
     info:
       path: ReceptorShare/Info.plist
       properties:
-        CFBundleDisplayName: Receptor
+        CFBundleDisplayName: "Receptor 📤 💭"
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
-          NSExtensionPointIdentifier: com.apple.share-services
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionPointIdentifier: com.apple.ui-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ContextViewController
           NSExtensionAttributes:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
               NSExtensionActivationSupportsText: true
-  ReceptorWidgets:
+  ReceptorSend:
     type: app-extension
     platform: iOS
-    sources: [ReceptorWidgets, Shared]
+    sources: [ReceptorSend, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.send
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: iphoneos iphonesimulator
-        PRODUCT_NAME: ReceptorWidgets
-        CODE_SIGN_ENTITLEMENTS: ReceptorWidgets/ReceptorWidgets.entitlements
+        PRODUCT_NAME: ReceptorSend
+        CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
       configs:
         Release:
-          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Widgets Ad Hoc
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Send Ad Hoc
     info:
-      path: ReceptorWidgets/Info.plist
+      path: ReceptorSend/Info.plist
       properties:
-        CFBundleDisplayName: Receptor
+        CFBundleDisplayName: "Receptor 📥"
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+          NSExtensionPointIdentifier: com.apple.ui-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SendRequestHandler
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+  ReceptorPrefilled:
+    type: app-extension
+    platform: iOS
+    sources: [ReceptorPrefilled, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.prefilled
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator
+        PRODUCT_NAME: ReceptorPrefilled
+        CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Prefilled Ad Hoc
+    info:
+      path: ReceptorPrefilled/Info.plist
+      properties:
+        CFBundleDisplayName: "Pre-filled Receptor 📤"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ui-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PrefilledRequestHandler
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
 schemes:
   Receptor:
     build:

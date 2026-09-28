@@ -307,9 +307,9 @@ struct SettingsTab: View {
                 .disabled(newDomain.trimmingCharacters(in: .whitespaces).isEmpty || newContext.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         } header: {
-            Text("Share Sheet Default Context")
+            Text("Pre-filled Receptor")
         } footer: {
-            Text("When a shared link's host matches, the context field is pre-filled (sent as \"link $ context\").")
+            Text("\"Pre-filled Receptor\" in the share sheet appends the matching context (sent as \"link $ context\"); links from other sites are sent as-is.")
         }
     }
     #endif

@@ -11,7 +11,6 @@ enum Configuration {
     private static let apiKeyKey = "receptor_api_key"
     private static let proxySecretKey = "receptor_proxy_secret"
     private static let intakerURLKey = "receptor_intaker_url"
-    private static let pendingComposeKey = "receptor_pending_compose"
     private static let domainContextsKey = "receptor_domain_contexts"
 
     static var sharedDefaults: UserDefaults? {
@@ -104,15 +103,8 @@ enum Configuration {
         #endif
     }
 
-    /// Set by the Control Center button's intent right before the app is
-    /// opened; the app consumes it on activation and shows the compose sheet.
-    static var pendingCompose: Bool {
-        get { sharedDefaults?.bool(forKey: pendingComposeKey) ?? false }
-        set { sharedDefaults?.set(newValue, forKey: pendingComposeKey) }
-    }
-
-    /// Share-sheet default contexts: host suffix -> context text appended as
-    /// `$ context`. User state, edited in Settings.
+    /// "Pre-filled Receptor" contexts: host suffix -> context text appended as
+    /// `$ context` when a shared link's host matches. User state, edited in Settings.
     static var domainContexts: [String: String] {
         get {
             guard let data = sharedDefaults?.data(forKey: domainContextsKey),

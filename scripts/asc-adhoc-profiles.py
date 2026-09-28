@@ -2,12 +2,15 @@
 # /// script
 # dependencies = ["httpx", "pyjwt[crypto]"]
 # ///
-"""Create (or refresh) the three iOS Ad Hoc provisioning profiles through the
-App Store Connect API and print them base64-encoded, one JSON object.
+"""Register the app's bundle IDs (with the App Groups capability), then create
+(or refresh) one iOS Ad Hoc provisioning profile per target through the App
+Store Connect API and print them base64-encoded, one JSON object.
 
-The bundle IDs and the App Group must already exist (Xcode's automatic signing
-registers them on the first `-allowProvisioningUpdates` device build). This
-script only mints distribution profiles, which Xcode never does for Ad Hoc.
+Assigning the group itself to each App ID is a developer-portal-only step
+(neither Xcode nor the API can do it): after the first run, configure App
+Groups on every listed bundle ID in the portal, then run again so the
+profiles pick the entitlement up. Profiles are immutable; every run replaces
+them. `--register-only` stops after the bundle IDs.
 
 Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (PEM), ASC_TEAM_DEVICE_UDIDS (comma
 separated; defaults to every enabled iPhone/iPad on the team).
@@ -26,7 +29,8 @@ API = "https://api.appstoreconnect.apple.com/v1"
 PROFILES = {
     "app": ("com.alexmiller.receptor", "Receptor Ad Hoc"),
     "share": ("com.alexmiller.receptor.share", "Receptor Share Ad Hoc"),
-    "widgets": ("com.alexmiller.receptor.widgets", "Receptor Widgets Ad Hoc"),
+    "send": ("com.alexmiller.receptor.send", "Receptor Send Ad Hoc"),
+    "prefilled": ("com.alexmiller.receptor.prefilled", "Receptor Prefilled Ad Hoc"),
 }
 
 
@@ -48,6 +52,30 @@ def main() -> int:
         r.raise_for_status()
         return r.json()["data"]
 
+    def ensure_bundle_id(identifier):
+        found = [b for b in get("/bundleIds", **{"filter[identifier]": identifier, "filter[platform]": "IOS"})
+                 if b["attributes"]["identifier"] == identifier]
+        if found:
+            bid = found[0]
+        else:
+            r = client.post("/bundleIds", json={"data": {"type": "bundleIds", "attributes": {
+                "identifier": identifier, "name": identifier.replace(".", " "), "platform": "IOS"}}})
+            r.raise_for_status()
+            bid = r.json()["data"]
+            print(f"registered {identifier}", file=sys.stderr)
+        caps = client.get(f"/bundleIds/{bid['id']}/bundleIdCapabilities").json().get("data", [])
+        if not any(c["attributes"]["capabilityType"] == "APP_GROUPS" for c in caps):
+            r = client.post("/bundleIdCapabilities", json={"data": {"type": "bundleIdCapabilities",
+                "attributes": {"capabilityType": "APP_GROUPS"},
+                "relationships": {"bundleId": {"data": {"type": "bundleIds", "id": bid["id"]}}}}})
+            r.raise_for_status()
+            print(f"enabled APP_GROUPS on {identifier} - assign the group in the portal", file=sys.stderr)
+        return bid
+
+    bundle_ids = {key: ensure_bundle_id(bundle_id) for key, (bundle_id, _) in PROFILES.items()}
+    if "--register-only" in sys.argv:
+        return 0
+
     certs = [c for c in get("/certificates", **{"filter[certificateType]": "DISTRIBUTION"})]
     if not certs:
         print("no Apple Distribution certificate on the team", file=sys.stderr)
@@ -62,11 +90,7 @@ def main() -> int:
 
     out = {}
     for key, (bundle_id, name) in PROFILES.items():
-        bids = get("/bundleIds", **{"filter[identifier]": bundle_id, "filter[platform]": "IOS"})
-        bids = [b for b in bids if b["attributes"]["identifier"] == bundle_id]
-        if not bids:
-            print(f"bundle id {bundle_id} not registered - run `just build` once first", file=sys.stderr)
-            return 1
+        bids = [bundle_ids[key]]
         # Profiles are immutable: delete the old one of this name, mint a new one.
         for old in get("/profiles", **{"filter[name]": name}):
             client.delete(f"/profiles/{old['id']}").raise_for_status()

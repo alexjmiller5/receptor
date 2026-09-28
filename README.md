@@ -3,9 +3,11 @@
 Thought capture for iPhone and Mac. Offline-first SwiftUI app: thoughts are
 saved locally (SwiftData) the instant you type them, then synced in FIFO
 order to the [Synapse](https://github.com/alexjmiller5/synapse) backend via a
-background-wake mechanism. On macOS it lives in the menu bar; on iOS the app icon,
-a Lock Screen widget, a Control Center button and a share-sheet extension all
-land on a new thought. `receptor://compose` opens the compose sheet and
+background-wake mechanism. On macOS it lives in the menu bar. On iOS the "Recept"
+App Shortcut asks for a thought in the system sheet from the Lock Screen,
+Control Center, the Action Button or Siri without opening the app, and the
+share sheet offers three entries: send as-is, add a context, or append the
+context you configured for that site. `receptor://compose` opens the compose sheet and
 `receptor://recept?text=...&source=...` queues and sends a thought without UI
 (hotkeys, agents). Every capture carries a `source` label that is forwarded to
 the backend and logged with it.

@@ -77,7 +77,7 @@ signing-setup:
     rm "$tmp/dist.p12"
     mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
              "$HOME/Library/MobileDevice/Provisioning Profiles"
-    for field in app_mobileprovision_base64 share_mobileprovision_base64 widgets_mobileprovision_base64; do
+    for field in app_mobileprovision_base64 share_mobileprovision_base64 send_mobileprovision_base64 prefilled_mobileprovision_base64; do
       op read "{{profiles_item}}/$field" | base64 -d > "$tmp/profile.mobileprovision"
       uuid=$(security cms -D -i "$tmp/profile.mobileprovision" | plutil -extract UUID raw -o - -)
       cp "$tmp/profile.mobileprovision" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$uuid.mobileprovision"

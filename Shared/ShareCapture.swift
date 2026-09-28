@@ -1,13 +1,12 @@
 import Foundation
 import SwiftData
 
-/// The share extension's capture path: persist the thought in the shared store
+/// The share-sheet extensions' capture path: persist the thought in the shared store
 /// and hand its upload to the OS through a background URLSession. The extension
 /// exits right after; the app owns the session's completion (see
 /// `SyncManager.reconnectBackgroundSession` and AppDelegate).
 enum ShareCapture {
     static let backgroundSessionIdentifier = "com.alexmiller.receptor.share-upload"
-    static let source = "share-sheet"
 
     static func makeContainer() throws -> ModelContainer {
         guard let url = Configuration.storeURL else { throw ShareCaptureError.noContainer }
@@ -15,7 +14,7 @@ enum ShareCapture {
     }
 
     @MainActor
-    static func enqueue(text: String, container: ModelContainer) throws {
+    static func enqueue(text: String, source: String, container: ModelContainer) throws {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw ShareCaptureError.emptyText }
         let context = container.mainContext
