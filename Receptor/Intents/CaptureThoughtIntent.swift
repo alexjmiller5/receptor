@@ -11,7 +11,9 @@ struct CaptureThoughtIntent: AppIntent {
     static var title: LocalizedStringResource = "Recept"
     static var description = IntentDescription("Recept a thought to the processor")
 
-    @Parameter(title: "Thought")
+    // No value given (Shortcuts widget, Control Center "Shortcut" control, Siri,
+    // Spotlight) -> iOS asks in a system sheet, no app launch.
+    @Parameter(title: "Thought", requestValueDialog: "What's on your mind?")
     var text: String
 
     /// Who is sending: a shortcut passes its own name, a hotkey or agent its
@@ -26,7 +28,7 @@ struct CaptureThoughtIntent: AppIntent {
     }
 
     @MainActor
-    func perform() async throws -> some IntentResult & ReturnsValue<String> {
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
         os_log("[INTENT] CaptureThoughtIntent.perform() — ENTRY pid=%d proc=%{public}@ text='%{public}@'", log: intentLog, type: .default, pid, proc, String(text.prefix(30)))
@@ -47,7 +49,7 @@ struct CaptureThoughtIntent: AppIntent {
         }
 
         // 1. Instant Persistence - save to shared database
-        await SyncManager.shared.queueThought(text, source: source)
+        await SyncManager.shared.queueThought(text, source: source ?? "app-shortcut")
 
         // The queueThought method already triggers background upload
         // We return immediately - the background session handles the rest
@@ -58,7 +60,7 @@ struct CaptureThoughtIntent: AppIntent {
             ? "Queued"
             : "Queued locally — Receptor is not configured (open Settings)"
         os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
-        return .result(value: result)
+        return .result(value: result, dialog: IntentDialog(stringLiteral: result))
     }
 }
 
