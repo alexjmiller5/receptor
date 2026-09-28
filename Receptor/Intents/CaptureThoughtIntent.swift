@@ -12,8 +12,13 @@ struct CaptureThoughtIntent: AppIntent {
     static var description = IntentDescription("Recept a thought to the processor")
 
     // No value given (Shortcuts widget, Control Center "Shortcut" control, Siri,
-    // Spotlight) -> iOS asks in a system sheet, no app launch.
-    @Parameter(title: "Thought", requestValueDialog: "What's on your mind?")
+    // Spotlight) -> iOS asks in a system sheet with a multi-line field, no app
+    // launch. No result dialog: the sheet closes itself once the thought is in.
+    @Parameter(
+        title: "Thought",
+        inputOptions: String.IntentInputOptions(keyboardType: .default, capitalizationType: .sentences, multiline: true, autocorrect: true),
+        requestValueDialog: "Enter your thought 💭"
+    )
     var text: String
 
     /// Who is sending: a shortcut passes its own name, a hotkey or agent its
@@ -28,7 +33,7 @@ struct CaptureThoughtIntent: AppIntent {
     }
 
     @MainActor
-    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<String> {
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
         os_log("[INTENT] CaptureThoughtIntent.perform() — ENTRY pid=%d proc=%{public}@ text='%{public}@'", log: intentLog, type: .default, pid, proc, String(text.prefix(30)))
@@ -60,7 +65,7 @@ struct CaptureThoughtIntent: AppIntent {
             ? "Queued"
             : "Queued locally — Receptor is not configured (open Settings)"
         os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
-        return .result(value: result, dialog: IntentDialog(stringLiteral: result))
+        return .result(value: result)
     }
 }
 
