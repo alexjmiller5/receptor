@@ -42,7 +42,6 @@ struct SettingsTab: View {
     private var iOSSettings: some View {
         NavigationStack {
             Form {
-                captureSection
                 shareDefaultsSection
                 connectionSection
                 requestFormatSection
@@ -275,21 +274,9 @@ struct SettingsTab: View {
 
     // iOS sections
     #if os(iOS)
-    @State private var openToCompose = Configuration.openToCompose
     @State private var domainContexts = Configuration.domainContexts
     @State private var newDomain = ""
     @State private var newContext = ""
-
-    private var captureSection: some View {
-        Section {
-            Toggle("Open to a new thought", isOn: $openToCompose)
-                .onChange(of: openToCompose) { _, value in Configuration.openToCompose = value }
-        } header: {
-            Text("Capture")
-        } footer: {
-            Text("The app icon, the Lock Screen widget and the Control Center button all land on a new thought.")
-        }
-    }
 
     private var shareDefaultsSection: some View {
         Section {

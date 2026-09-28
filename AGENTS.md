@@ -10,7 +10,6 @@ Every capture surface is native - there are no Shortcuts in the loop:
 
 | Surface | Target | Mechanism |
 |---|---|---|
-| App icon (Home Screen) | Receptor | `Configuration.openToCompose` (default on) shows the compose sheet on every activation |
 | Lock Screen widget | ReceptorWidgets | accessory widget, `widgetURL(receptor://compose)` |
 | Control Center button | ReceptorWidgets | `ControlWidgetButton(OpenComposeIntent)` - `openAppWhenRun` + the `pendingCompose` flag in group defaults |
 | Share sheet | ReceptorShare | `ShareViewController` → `ShareCapture.enqueue` (shared store + its own background upload session) |

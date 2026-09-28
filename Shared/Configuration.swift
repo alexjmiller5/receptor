@@ -11,7 +11,6 @@ enum Configuration {
     private static let apiKeyKey = "receptor_api_key"
     private static let proxySecretKey = "receptor_proxy_secret"
     private static let intakerURLKey = "receptor_intaker_url"
-    private static let openToComposeKey = "receptor_open_to_compose"
     private static let pendingComposeKey = "receptor_pending_compose"
     private static let domainContextsKey = "receptor_domain_contexts"
 
@@ -103,13 +102,6 @@ enum Configuration {
         #else
         "macos-app"
         #endif
-    }
-
-    /// iOS: opening the app from its icon goes straight to a new thought
-    /// (the Home Screen icon IS the capture button). Default on.
-    static var openToCompose: Bool {
-        get { sharedDefaults?.object(forKey: openToComposeKey) as? Bool ?? true }
-        set { sharedDefaults?.set(newValue, forKey: openToComposeKey) }
     }
 
     /// Set by the Control Center button's intent right before the app is

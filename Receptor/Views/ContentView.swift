@@ -23,9 +23,8 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
             guard phase == .active else { return }
-            // The Home Screen icon and the Control Center button both mean
-            // "new thought"; the pending flag is set by OpenComposeIntent.
-            if Configuration.pendingCompose || Configuration.openToCompose {
+            // Set by OpenComposeIntent (Control Center button) right before launch.
+            if Configuration.pendingCompose {
                 Configuration.pendingCompose = false
                 selectedTab = 0
                 router.showCompose = true
