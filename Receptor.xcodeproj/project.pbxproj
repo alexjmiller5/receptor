@@ -7,52 +7,66 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0028F5E466150DA7300DC5E6 /* ReceptorWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59FECDE7D8CBF534896EBEB /* ReceptorWidgets.swift */; };
 		1071450872F7820F1665F7C8 /* ReceptQueueIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E7673908D47AA210526BE9 /* ReceptQueueIntent.swift */; };
+		12CE3D3187C81BB2B5E4CD2A /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
 		1A0712D2F8ECCFC13F0EDE70 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
-		1C72F7F341FA6310A6174F63 /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
 		1CB6ADBBE67C1CC43CAD1567 /* ThoughtListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80292CB55A70B2D45020B300 /* ThoughtListView.swift */; };
+		20D9BE4C30D0C63613D9A0CA /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
+		2531BDC638031E375F9D4F5A /* ReceptorPrefilled.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1983A83485F56EB3AED3F2B5 /* ReceptorPrefilled.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		28490520477C12322FD0D18F /* ComposeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4F13BFC39521FA1CAA7180 /* ComposeRouter.swift */; };
 		288A62863003E39617FC113F /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECE5D4F5EA65957F8C5C41B /* ComposeView.swift */; };
 		33158AA291D521E465EF3740 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89187ADDF0DF3E684D3B8814 /* LoginItemManager.swift */; };
+		34BB2AF13DE50ACA75926359 /* PrefilledRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D20DB16DA98BE9181EC783 /* PrefilledRequestHandler.swift */; };
 		3E695435484DEBA62E7E316F /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
 		43D8F3DCBD5DDAD4AE785F34 /* ReceptorShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5EA46E42CC45F365CE99E2B8 /* ReceptorShare.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4E194168017D2A9C5625582D /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
+		4EA9428C7181CC238D9125D0 /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
+		51E12D66C5F2B4DA266335EA /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
+		53FC7BD703D8AFBACC38473A /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
 		5D1098140692B77BE4905AC8 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E258B98228FD8E31A8E02B15 /* SyncManager.swift */; };
+		62AF30F85A1272AA10084A89 /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
+		64A78D8B46DB58EE95617B93 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
 		686560F90C31513881C13D85 /* ReceptorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4B21AB558FFE81AA0EEA3E /* ReceptorApp.swift */; };
-		6BF60EE2991090424C2AF119 /* OpenComposeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7DA897F49B3D72C9839AC52 /* OpenComposeIntent.swift */; };
-		6FFFEC7A25B44F9A1BD06861 /* ReceptorWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 600CCF1B5A52B01B16767355 /* ReceptorWidgets.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		7026934E2683FD8F7F0CF991 /* OpenComposeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7DA897F49B3D72C9839AC52 /* OpenComposeIntent.swift */; };
+		6B03D6B263FF73A950EB4D4E /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
 		71053417838D50AF9DC2C2A3 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
+		733716ABD7AE4A13C26506AD /* SendRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */; };
 		80B56D139DF8D238C2D88287 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
 		8B0C0EC7CA43991CF015180E /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
-		8CA0D65AAC2C7F4F30EAC1CE /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
-		90043A4E107CD1DEDC6A1DC9 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
+		8D1DF4A4CDEF8FE79B873737 /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
 		9005532F65DF1551A9505D3E /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
 		96516FC56F78FC1FC737D04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98013471497046BC27D613A0 /* AppDelegate.swift */; };
-		9C08FD2537AD0D4910CE0602 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2F1E35BAB76C19AF2CD7944 /* ShareView.swift */; };
-		9CECF8A32D3A55AF0FB82327 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
+		A55816108A515F086E1BF007 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
 		B084FFFEEA6E15737B282E81 /* ThoughtsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779FB4DC42CD19A093AE087 /* ThoughtsTab.swift */; };
 		BF394531BCAD6C719E75E2BB /* SettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F129A4E09AB4CA1DC2C88D5 /* SettingsTab.swift */; };
 		C08973FD443305901F8B452F /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1772787F8F695DE5C7D4A8 /* MenuBarView.swift */; };
+		C5672CAB98929A840043FF93 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
+		CF4D178F643CB963C450E933 /* ContextViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDBB10C0F3E23D07FB8E4783 /* ContextViewController.swift */; };
 		CFFE9E526F72248A172BBBB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E7D508AACA118077A7E6CF5 /* ContentView.swift */; };
+		D6F3FD954479BE4AA9E882EF /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
 		D9A8F47A4342B35C837C1DDB /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
 		E2935B682B8AEE9CAE5B272C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B921CCE2F388BD3D81AC234 /* Assets.xcassets */; };
-		E59F42D77F89C5D6A5F1E291 /* OpenComposeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7DA897F49B3D72C9839AC52 /* OpenComposeIntent.swift */; };
+		E5D4EBFE0DA50B5B9A15EF61 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
 		E826EB1003943A57D119CCD2 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
-		E95688AC3F07E1CBF2C64996 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
+		E843A119A8814870D50B6B9F /* ReceptorSend.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F296E061A6C2DFC57486B1C5 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
-		F318FF914B6D7543A0AA3722 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C6638472A22C1AEAD15BEA /* ShareViewController.swift */; };
+		F2B8AA20B6232731AAD0F000 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
 		FFDF9D29B07B822E4B7ADAE0 /* CaptureThoughtIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E8B5DAC90BBD615FEF30EC /* CaptureThoughtIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		6088C844CF4F6D32BF284D89 /* PBXContainerItemProxy */ = {
+		19AA785C2C73ADEB7F96FC4C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 38471458FCF0CD988374BB2B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 135ED78202E25160C1C4D0FE;
-			remoteInfo = ReceptorWidgets;
+			remoteGlobalIDString = 67BA3C935DD6074CEC79A97D;
+			remoteInfo = ReceptorSend;
+		};
+		6CC566DC3257067E57B24DBA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 38471458FCF0CD988374BB2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9543197537ED740CDF6193C0;
+			remoteInfo = ReceptorPrefilled;
 		};
 		7EC22058D1BBD65C348AB848 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -71,7 +85,8 @@
 			dstSubfolderSpec = 13;
 			files = (
 				43D8F3DCBD5DDAD4AE785F34 /* ReceptorShare.appex in Embed Foundation Extensions */,
-				6FFFEC7A25B44F9A1BD06861 /* ReceptorWidgets.appex in Embed Foundation Extensions */,
+				E843A119A8814870D50B6B9F /* ReceptorSend.appex in Embed Foundation Extensions */,
+				2531BDC638031E375F9D4F5A /* ReceptorPrefilled.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -79,39 +94,40 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		00089947B8366F367A0E8B9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		024413C3A2895403B040237B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorSend.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FB947A3023E10EE18A9672F /* Receptor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Receptor.entitlements; sourceTree = "<group>"; };
 		1273D28A97C9F1A4D6D262B5 /* Receptor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Receptor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		18E8B5DAC90BBD615FEF30EC /* CaptureThoughtIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureThoughtIntent.swift; sourceTree = "<group>"; };
+		1983A83485F56EB3AED3F2B5 /* ReceptorPrefilled.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorPrefilled.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		23084ED47242BEF2A675DFB4 /* Thought.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Thought.swift; sourceTree = "<group>"; };
 		2779FB4DC42CD19A093AE087 /* ThoughtsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtsTab.swift; sourceTree = "<group>"; };
 		2B921CCE2F388BD3D81AC234 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2CF9595BF0FD090A1340A385 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		2F638004D1185F9F1FC9BD23 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		3A4B21AB558FFE81AA0EEA3E /* ReceptorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptorApp.swift; sourceTree = "<group>"; };
 		4E7D508AACA118077A7E6CF5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		53D20DB16DA98BE9181EC783 /* PrefilledRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefilledRequestHandler.swift; sourceTree = "<group>"; };
 		5EA46E42CC45F365CE99E2B8 /* ReceptorShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F129A4E09AB4CA1DC2C88D5 /* SettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTab.swift; sourceTree = "<group>"; };
-		600CCF1B5A52B01B16767355 /* ReceptorWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		76252BF81EEDE5B47F7EE1AF /* Receptor-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Receptor-macOS.entitlements"; sourceTree = "<group>"; };
-		78B09EF413D4FB78E1070018 /* ReceptorShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ReceptorShare.entitlements; sourceTree = "<group>"; };
 		7ECE5D4F5EA65957F8C5C41B /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
 		80292CB55A70B2D45020B300 /* ThoughtListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtListView.swift; sourceTree = "<group>"; };
 		89187ADDF0DF3E684D3B8814 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		8EDBB40C7027297E326323AA /* DebugFileLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugFileLog.swift; sourceTree = "<group>"; };
 		95CD93E76487F0E841146387 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		98013471497046BC27D613A0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendRequestHandler.swift; sourceTree = "<group>"; };
 		9D4F13BFC39521FA1CAA7180 /* ComposeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRouter.swift; sourceTree = "<group>"; };
 		A9E7673908D47AA210526BE9 /* ReceptQueueIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptQueueIntent.swift; sourceTree = "<group>"; };
-		B0C6638472A22C1AEAD15BEA /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
-		C59FECDE7D8CBF534896EBEB /* ReceptorWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptorWidgets.swift; sourceTree = "<group>"; };
+		B94936B9104C59E0E30E34EA /* ExtensionInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionInput.swift; sourceTree = "<group>"; };
 		CC1772787F8F695DE5C7D4A8 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		D3CFA38C5BE1C95D7ACECF29 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DDBB10C0F3E23D07FB8E4783 /* ContextViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextViewController.swift; sourceTree = "<group>"; };
 		E258B98228FD8E31A8E02B15 /* SyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncManager.swift; sourceTree = "<group>"; };
 		E671C0CC0D00C93642B70220 /* ShareCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCapture.swift; sourceTree = "<group>"; };
-		E7DA897F49B3D72C9839AC52 /* OpenComposeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenComposeIntent.swift; sourceTree = "<group>"; };
-		F2F1E35BAB76C19AF2CD7944 /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
-		FAED01FCC52CFA922778E39A /* ReceptorWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ReceptorWidgets.entitlements; sourceTree = "<group>"; };
+		ED1482A312FEEDFD190EBC0F /* Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Extension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -144,20 +160,20 @@
 			isa = PBXGroup;
 			children = (
 				1273D28A97C9F1A4D6D262B5 /* Receptor.app */,
+				1983A83485F56EB3AED3F2B5 /* ReceptorPrefilled.appex */,
+				0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */,
 				5EA46E42CC45F365CE99E2B8 /* ReceptorShare.appex */,
-				600CCF1B5A52B01B16767355 /* ReceptorWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2948C96826AD8AF380D6F87D /* ReceptorWidgets */ = {
+		112FABC81D5E0F25DEF61BD1 /* ReceptorPrefilled */ = {
 			isa = PBXGroup;
 			children = (
-				2F638004D1185F9F1FC9BD23 /* Info.plist */,
-				FAED01FCC52CFA922778E39A /* ReceptorWidgets.entitlements */,
-				C59FECDE7D8CBF534896EBEB /* ReceptorWidgets.swift */,
+				00089947B8366F367A0E8B9A /* Info.plist */,
+				53D20DB16DA98BE9181EC783 /* PrefilledRequestHandler.swift */,
 			);
-			path = ReceptorWidgets;
+			path = ReceptorPrefilled;
 			sourceTree = "<group>";
 		};
 		5964B8F9F7E3B496BCAB1AE4 /* Services */ = {
@@ -178,6 +194,15 @@
 			path = macOS;
 			sourceTree = "<group>";
 		};
+		7330AC68322B227A5021C6D5 /* ReceptorSend */ = {
+			isa = PBXGroup;
+			children = (
+				D3CFA38C5BE1C95D7ACECF29 /* Info.plist */,
+				9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */,
+			);
+			path = ReceptorSend;
+			sourceTree = "<group>";
+		};
 		7C32130C4010213C9F0EE6E1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -194,10 +219,8 @@
 		C947AE545E4774464B0BA156 /* ReceptorShare */ = {
 			isa = PBXGroup;
 			children = (
+				DDBB10C0F3E23D07FB8E4783 /* ContextViewController.swift */,
 				2CF9595BF0FD090A1340A385 /* Info.plist */,
-				78B09EF413D4FB78E1070018 /* ReceptorShare.entitlements */,
-				F2F1E35BAB76C19AF2CD7944 /* ShareView.swift */,
-				B0C6638472A22C1AEAD15BEA /* ShareViewController.swift */,
 			);
 			path = ReceptorShare;
 			sourceTree = "<group>";
@@ -208,7 +231,8 @@
 				95CD93E76487F0E841146387 /* Configuration.swift */,
 				8EDBB40C7027297E326323AA /* DebugFileLog.swift */,
 				B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */,
-				E7DA897F49B3D72C9839AC52 /* OpenComposeIntent.swift */,
+				ED1482A312FEEDFD190EBC0F /* Extension.entitlements */,
+				B94936B9104C59E0E30E34EA /* ExtensionInput.swift */,
 				E671C0CC0D00C93642B70220 /* ShareCapture.swift */,
 				23084ED47242BEF2A675DFB4 /* Thought.swift */,
 			);
@@ -219,8 +243,9 @@
 			isa = PBXGroup;
 			children = (
 				0C3CBD4148F81FA069E583C1 /* Receptor */,
+				112FABC81D5E0F25DEF61BD1 /* ReceptorPrefilled */,
+				7330AC68322B227A5021C6D5 /* ReceptorSend */,
 				C947AE545E4774464B0BA156 /* ReceptorShare */,
-				2948C96826AD8AF380D6F87D /* ReceptorWidgets */,
 				E409D339A6DEC5ED0439ED8C /* Shared */,
 				0F26D02BD6CB56E31C5A445E /* Products */,
 			);
@@ -229,23 +254,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		135ED78202E25160C1C4D0FE /* ReceptorWidgets */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = EA1FBD12EF97A76096588C10 /* Build configuration list for PBXNativeTarget "ReceptorWidgets" */;
-			buildPhases = (
-				86567211A7E44DC95F83D1FA /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = ReceptorWidgets;
-			packageProductDependencies = (
-			);
-			productName = ReceptorWidgets;
-			productReference = 600CCF1B5A52B01B16767355 /* ReceptorWidgets.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		40F94D06B54829F15A53B99A /* ReceptorShare */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 46E5923F1FBD57CB886F55DD /* Build configuration list for PBXNativeTarget "ReceptorShare" */;
@@ -263,6 +271,40 @@
 			productReference = 5EA46E42CC45F365CE99E2B8 /* ReceptorShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		67BA3C935DD6074CEC79A97D /* ReceptorSend */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 35E79C27C71756309EC87D5B /* Build configuration list for PBXNativeTarget "ReceptorSend" */;
+			buildPhases = (
+				68281208CF476F8EDFCAE678 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ReceptorSend;
+			packageProductDependencies = (
+			);
+			productName = ReceptorSend;
+			productReference = 0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		9543197537ED740CDF6193C0 /* ReceptorPrefilled */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3010E3A24A93931DA35B3128 /* Build configuration list for PBXNativeTarget "ReceptorPrefilled" */;
+			buildPhases = (
+				3D47FB626FB2162764C7A1AB /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ReceptorPrefilled;
+			packageProductDependencies = (
+			);
+			productName = ReceptorPrefilled;
+			productReference = 1983A83485F56EB3AED3F2B5 /* ReceptorPrefilled.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		A1613EE2C8AE1659970EECE6 /* Receptor */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2720017CB4588ABFE91FAF8D /* Build configuration list for PBXNativeTarget "Receptor" */;
@@ -275,7 +317,8 @@
 			);
 			dependencies = (
 				BD1D90313E4788D02BFF79B9 /* PBXTargetDependency */,
-				0030784382AA989C78734DE8 /* PBXTargetDependency */,
+				C8423AEF5BB9FE460C863AFE /* PBXTargetDependency */,
+				4C6A1F48E5FAAA3DE3FF3E0C /* PBXTargetDependency */,
 			);
 			name = Receptor;
 			packageProductDependencies = (
@@ -293,11 +336,15 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					135ED78202E25160C1C4D0FE = {
+					40F94D06B54829F15A53B99A = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
-					40F94D06B54829F15A53B99A = {
+					67BA3C935DD6074CEC79A97D = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					9543197537ED740CDF6193C0 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
@@ -322,8 +369,9 @@
 			projectRoot = "";
 			targets = (
 				A1613EE2C8AE1659970EECE6 /* Receptor */,
+				9543197537ED740CDF6193C0 /* ReceptorPrefilled */,
+				67BA3C935DD6074CEC79A97D /* ReceptorSend */,
 				40F94D06B54829F15A53B99A /* ReceptorShare */,
-				135ED78202E25160C1C4D0FE /* ReceptorWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -340,32 +388,45 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		3D47FB626FB2162764C7A1AB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C5672CAB98929A840043FF93 /* Configuration.swift in Sources */,
+				E5D4EBFE0DA50B5B9A15EF61 /* DebugFileLog.swift in Sources */,
+				6B03D6B263FF73A950EB4D4E /* DeepLink.swift in Sources */,
+				62AF30F85A1272AA10084A89 /* ExtensionInput.swift in Sources */,
+				34BB2AF13DE50ACA75926359 /* PrefilledRequestHandler.swift in Sources */,
+				F2B8AA20B6232731AAD0F000 /* ShareCapture.swift in Sources */,
+				D6F3FD954479BE4AA9E882EF /* Thought.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		64F6C090BD470DC73A2EB3EB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				8B0C0EC7CA43991CF015180E /* Configuration.swift in Sources */,
+				CF4D178F643CB963C450E933 /* ContextViewController.swift in Sources */,
 				71053417838D50AF9DC2C2A3 /* DebugFileLog.swift in Sources */,
 				1A0712D2F8ECCFC13F0EDE70 /* DeepLink.swift in Sources */,
-				6BF60EE2991090424C2AF119 /* OpenComposeIntent.swift in Sources */,
+				8D1DF4A4CDEF8FE79B873737 /* ExtensionInput.swift in Sources */,
 				D9A8F47A4342B35C837C1DDB /* ShareCapture.swift in Sources */,
-				9C08FD2537AD0D4910CE0602 /* ShareView.swift in Sources */,
-				F318FF914B6D7543A0AA3722 /* ShareViewController.swift in Sources */,
 				9005532F65DF1551A9505D3E /* Thought.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		86567211A7E44DC95F83D1FA /* Sources */ = {
+		68281208CF476F8EDFCAE678 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8CA0D65AAC2C7F4F30EAC1CE /* Configuration.swift in Sources */,
-				90043A4E107CD1DEDC6A1DC9 /* DebugFileLog.swift in Sources */,
-				E95688AC3F07E1CBF2C64996 /* DeepLink.swift in Sources */,
-				7026934E2683FD8F7F0CF991 /* OpenComposeIntent.swift in Sources */,
-				0028F5E466150DA7300DC5E6 /* ReceptorWidgets.swift in Sources */,
-				9CECF8A32D3A55AF0FB82327 /* ShareCapture.swift in Sources */,
-				1C72F7F341FA6310A6174F63 /* Thought.swift in Sources */,
+				64A78D8B46DB58EE95617B93 /* Configuration.swift in Sources */,
+				A55816108A515F086E1BF007 /* DebugFileLog.swift in Sources */,
+				51E12D66C5F2B4DA266335EA /* DeepLink.swift in Sources */,
+				53FC7BD703D8AFBACC38473A /* ExtensionInput.swift in Sources */,
+				733716ABD7AE4A13C26506AD /* SendRequestHandler.swift in Sources */,
+				12CE3D3187C81BB2B5E4CD2A /* ShareCapture.swift in Sources */,
+				20D9BE4C30D0C63613D9A0CA /* Thought.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,9 +442,9 @@
 				CFFE9E526F72248A172BBBB1 /* ContentView.swift in Sources */,
 				4E194168017D2A9C5625582D /* DebugFileLog.swift in Sources */,
 				F296E061A6C2DFC57486B1C5 /* DeepLink.swift in Sources */,
+				4EA9428C7181CC238D9125D0 /* ExtensionInput.swift in Sources */,
 				33158AA291D521E465EF3740 /* LoginItemManager.swift in Sources */,
 				C08973FD443305901F8B452F /* MenuBarView.swift in Sources */,
-				E59F42D77F89C5D6A5F1E291 /* OpenComposeIntent.swift in Sources */,
 				1071450872F7820F1665F7C8 /* ReceptQueueIntent.swift in Sources */,
 				686560F90C31513881C13D85 /* ReceptorApp.swift in Sources */,
 				BF394531BCAD6C719E75E2BB /* SettingsTab.swift in Sources */,
@@ -398,11 +459,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0030784382AA989C78734DE8 /* PBXTargetDependency */ = {
+		4C6A1F48E5FAAA3DE3FF3E0C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
-			target = 135ED78202E25160C1C4D0FE /* ReceptorWidgets */;
-			targetProxy = 6088C844CF4F6D32BF284D89 /* PBXContainerItemProxy */;
+			target = 9543197537ED740CDF6193C0 /* ReceptorPrefilled */;
+			targetProxy = 6CC566DC3257067E57B24DBA /* PBXContainerItemProxy */;
 		};
 		BD1D90313E4788D02BFF79B9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -410,13 +471,19 @@
 			target = 40F94D06B54829F15A53B99A /* ReceptorShare */;
 			targetProxy = 7EC22058D1BBD65C348AB848 /* PBXContainerItemProxy */;
 		};
+		C8423AEF5BB9FE460C863AFE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = 67BA3C935DD6074CEC79A97D /* ReceptorSend */;
+			targetProxy = 19AA785C2C73ADEB7F96FC4C /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		01D0F4D94A4E2C8667EF6CCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReceptorShare/ReceptorShare.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorShare/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.share;
 				PRODUCT_NAME = ReceptorShare;
@@ -443,18 +510,45 @@
 			};
 			name = Debug;
 		};
-		39CD46064EFC6590E340E99C /* Debug */ = {
+		29CD01503DA5D3E3B7BEDEE7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReceptorWidgets/ReceptorWidgets.entitlements;
-				INFOPLIST_FILE = ReceptorWidgets/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.widgets;
-				PRODUCT_NAME = ReceptorWidgets;
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
+				INFOPLIST_FILE = ReceptorPrefilled/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.prefilled;
+				PRODUCT_NAME = ReceptorPrefilled;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		2F8D01170FC15CBF85566CDC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
+				INFOPLIST_FILE = ReceptorSend/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.send;
+				PRODUCT_NAME = ReceptorSend;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		45D99625524ED614FEDFBDAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
+				INFOPLIST_FILE = ReceptorSend/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.send;
+				PRODUCT_NAME = ReceptorSend;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Receptor Send Ad Hoc";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		4FE7BDBC7F89C79B320FE769 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -510,28 +604,28 @@
 			};
 			name = Debug;
 		};
-		D7768E20B25CCCD590F1131F /* Release */ = {
+		EF62C2FBBE79B15A6704D628 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReceptorWidgets/ReceptorWidgets.entitlements;
-				INFOPLIST_FILE = ReceptorWidgets/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.widgets;
-				PRODUCT_NAME = ReceptorWidgets;
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Receptor Widgets Ad Hoc";
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
+				INFOPLIST_FILE = ReceptorShare/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.share;
+				PRODUCT_NAME = ReceptorShare;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Receptor Share Ad Hoc";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
-		EF62C2FBBE79B15A6704D628 /* Release */ = {
+		F521964ED71B81890D0C2BF4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ReceptorShare/ReceptorShare.entitlements;
-				INFOPLIST_FILE = ReceptorShare/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.share;
-				PRODUCT_NAME = ReceptorShare;
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Receptor Share Ad Hoc";
+				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
+				INFOPLIST_FILE = ReceptorPrefilled/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.prefilled;
+				PRODUCT_NAME = ReceptorPrefilled;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Receptor Prefilled Ad Hoc";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -550,6 +644,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		3010E3A24A93931DA35B3128 /* Build configuration list for PBXNativeTarget "ReceptorPrefilled" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				29CD01503DA5D3E3B7BEDEE7 /* Debug */,
+				F521964ED71B81890D0C2BF4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		35E79C27C71756309EC87D5B /* Build configuration list for PBXNativeTarget "ReceptorSend" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F8D01170FC15CBF85566CDC /* Debug */,
+				45D99625524ED614FEDFBDAB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		46E5923F1FBD57CB886F55DD /* Build configuration list for PBXNativeTarget "ReceptorShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -564,15 +676,6 @@
 			buildConfigurations = (
 				0AC59CEC16FE964EBC579304 /* Debug */,
 				4FE7BDBC7F89C79B320FE769 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		EA1FBD12EF97A76096588C10 /* Build configuration list for PBXNativeTarget "ReceptorWidgets" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				39CD46064EFC6590E340E99C /* Debug */,
-				D7768E20B25CCCD590F1131F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
