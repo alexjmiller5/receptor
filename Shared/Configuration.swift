@@ -104,7 +104,9 @@ enum Configuration {
     }
 
     /// "Pre-filled Receptor" contexts: host suffix -> context text appended as
-    /// `$ context` when a shared link's host matches. User state, edited in Settings.
+    /// `$ context` when a shared link's host matches; the `*` key is the
+    /// catch-all for everything else. User state, edited in Settings.
+    static let catchAllDomain = "*"
     static var domainContexts: [String: String] {
         get {
             guard let data = sharedDefaults?.data(forKey: domainContextsKey),
@@ -116,19 +118,21 @@ enum Configuration {
         }
     }
 
-    /// Default context for shared content, matched on the host of its first URL
-    /// (a rule for `maps.app.goo.gl` also covers `www.maps.app.goo.gl`).
+    /// Default context for shared content: the rule whose host matches the
+    /// content's first URL (a rule for `maps.app.goo.gl` also covers
+    /// `www.maps.app.goo.gl`), else the catch-all, else nil.
     static func defaultContext(for text: String) -> String? {
         let rules = domainContexts
         guard !rules.isEmpty else { return nil }
         let hosts = text.split(whereSeparator: \.isWhitespace)
             .compactMap { URL(string: String($0))?.host?.lowercased() }
         for host in hosts {
-            for (domain, context) in rules {
+            for (domain, context) in rules where domain != catchAllDomain {
                 let d = domain.lowercased()
                 if host == d || host.hasSuffix("." + d) { return context }
             }
         }
+        if let all = rules[catchAllDomain], !all.isEmpty { return all }
         return nil
     }
 }

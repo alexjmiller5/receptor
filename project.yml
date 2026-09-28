@@ -74,17 +74,20 @@ targets:
             CFBundleURLSchemes: [receptor]
   # Share-sheet ACTION extensions (the list below the app row), one entry per
   # capture mode, mirroring the three Shortcuts they replace. Share extensions
-  # would land in the app row instead - keep these as ui-services.
+  # would land in the app row instead - keep these as ui-services. iOS draws an
+  # action's icon as a template silhouette from the EXTENSION's own AppIcon
+  # (ExtensionAssets) - without one the entry is a blank black square.
   ReceptorShare:
     type: app-extension
     platform: iOS
-    sources: [ReceptorShare, Shared]
+    sources: [ReceptorShare, Shared, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.share
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: iphoneos iphonesimulator
         PRODUCT_NAME: ReceptorShare
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
       configs:
@@ -106,13 +109,14 @@ targets:
   ReceptorSend:
     type: app-extension
     platform: iOS
-    sources: [ReceptorSend, Shared]
+    sources: [ReceptorSend, Shared, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.send
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: iphoneos iphonesimulator
         PRODUCT_NAME: ReceptorSend
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
       configs:
@@ -134,13 +138,14 @@ targets:
   ReceptorPrefilled:
     type: app-extension
     platform: iOS
-    sources: [ReceptorPrefilled, Shared]
+    sources: [ReceptorPrefilled, Shared, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.prefilled
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: iphoneos iphonesimulator
         PRODUCT_NAME: ReceptorPrefilled
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: Shared/Extension.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
       configs:

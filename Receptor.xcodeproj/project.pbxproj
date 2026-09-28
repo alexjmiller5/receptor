@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0996149556DD009217EC0E54 /* ExtensionAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D8F3CDFD10A1AF3B05B3AD9 /* ExtensionAssets.xcassets */; };
 		1071450872F7820F1665F7C8 /* ReceptQueueIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E7673908D47AA210526BE9 /* ReceptQueueIntent.swift */; };
 		12CE3D3187C81BB2B5E4CD2A /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
 		1A0712D2F8ECCFC13F0EDE70 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
@@ -36,6 +37,8 @@
 		9005532F65DF1551A9505D3E /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
 		96516FC56F78FC1FC737D04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98013471497046BC27D613A0 /* AppDelegate.swift */; };
 		A55816108A515F086E1BF007 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
+		AAC3BA5CA74D4A079A38AA14 /* ExtensionAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D8F3CDFD10A1AF3B05B3AD9 /* ExtensionAssets.xcassets */; };
+		AFA555E19A361EC4154E6DB2 /* ExtensionAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D8F3CDFD10A1AF3B05B3AD9 /* ExtensionAssets.xcassets */; };
 		B084FFFEEA6E15737B282E81 /* ThoughtsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2779FB4DC42CD19A093AE087 /* ThoughtsTab.swift */; };
 		BF394531BCAD6C719E75E2BB /* SettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F129A4E09AB4CA1DC2C88D5 /* SettingsTab.swift */; };
 		C08973FD443305901F8B452F /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1772787F8F695DE5C7D4A8 /* MenuBarView.swift */; };
@@ -119,6 +122,7 @@
 		98013471497046BC27D613A0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendRequestHandler.swift; sourceTree = "<group>"; };
 		9D4F13BFC39521FA1CAA7180 /* ComposeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRouter.swift; sourceTree = "<group>"; };
+		9D8F3CDFD10A1AF3B05B3AD9 /* ExtensionAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ExtensionAssets.xcassets; sourceTree = "<group>"; };
 		A9E7673908D47AA210526BE9 /* ReceptQueueIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceptQueueIntent.swift; sourceTree = "<group>"; };
 		B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		B94936B9104C59E0E30E34EA /* ExtensionInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionInput.swift; sourceTree = "<group>"; };
@@ -216,6 +220,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		9C22C68A630AE3A544AC015F /* ExtensionAssets */ = {
+			isa = PBXGroup;
+			children = (
+				9D8F3CDFD10A1AF3B05B3AD9 /* ExtensionAssets.xcassets */,
+			);
+			path = ExtensionAssets;
+			sourceTree = "<group>";
+		};
 		C947AE545E4774464B0BA156 /* ReceptorShare */ = {
 			isa = PBXGroup;
 			children = (
@@ -242,6 +254,7 @@
 		F15706702A9E4B538FF1014E = {
 			isa = PBXGroup;
 			children = (
+				9C22C68A630AE3A544AC015F /* ExtensionAssets */,
 				0C3CBD4148F81FA069E583C1 /* Receptor */,
 				112FABC81D5E0F25DEF61BD1 /* ReceptorPrefilled */,
 				7330AC68322B227A5021C6D5 /* ReceptorSend */,
@@ -259,6 +272,7 @@
 			buildConfigurationList = 46E5923F1FBD57CB886F55DD /* Build configuration list for PBXNativeTarget "ReceptorShare" */;
 			buildPhases = (
 				64F6C090BD470DC73A2EB3EB /* Sources */,
+				80431C8607CD44F87ACB9191 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -276,6 +290,7 @@
 			buildConfigurationList = 35E79C27C71756309EC87D5B /* Build configuration list for PBXNativeTarget "ReceptorSend" */;
 			buildPhases = (
 				68281208CF476F8EDFCAE678 /* Sources */,
+				99C3FF4144F4FAB8A6C6EA7F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -293,6 +308,7 @@
 			buildConfigurationList = 3010E3A24A93931DA35B3128 /* Build configuration list for PBXNativeTarget "ReceptorPrefilled" */;
 			buildPhases = (
 				3D47FB626FB2162764C7A1AB /* Sources */,
+				4941DC566346CFE9CC8328E3 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -377,6 +393,30 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4941DC566346CFE9CC8328E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AFA555E19A361EC4154E6DB2 /* ExtensionAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		80431C8607CD44F87ACB9191 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0996149556DD009217EC0E54 /* ExtensionAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99C3FF4144F4FAB8A6C6EA7F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAC3BA5CA74D4A079A38AA14 /* ExtensionAssets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F9E19F9098475B88A14F7219 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -483,6 +523,7 @@
 		01D0F4D94A4E2C8667EF6CCA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorShare/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.share;
@@ -513,6 +554,7 @@
 		29CD01503DA5D3E3B7BEDEE7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorPrefilled/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.prefilled;
@@ -526,6 +568,7 @@
 		2F8D01170FC15CBF85566CDC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorSend/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.send;
@@ -539,6 +582,7 @@
 		45D99625524ED614FEDFBDAB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorSend/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.send;
@@ -607,6 +651,7 @@
 		EF62C2FBBE79B15A6704D628 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorShare/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.share;
@@ -621,6 +666,7 @@
 		F521964ED71B81890D0C2BF4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Shared/Extension.entitlements;
 				INFOPLIST_FILE = ReceptorPrefilled/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.alexmiller.receptor.prefilled;
