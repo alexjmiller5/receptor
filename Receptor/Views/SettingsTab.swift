@@ -278,13 +278,22 @@ struct SettingsTab: View {
     @State private var newDomain = ""
     @State private var newContext = ""
 
+    @State private var catchAllContext = Configuration.domainContexts[Configuration.catchAllDomain] ?? ""
+
     private var shareDefaultsSection: some View {
         Section {
-            ForEach(domainContexts.keys.sorted(), id: \.self) { domain in
+            TextField("All other links", text: $catchAllContext)
+                .autocorrectionDisabled()
+                .onChange(of: catchAllContext) { _, value in
+                    let v = value.trimmingCharacters(in: .whitespaces)
+                    if v.isEmpty { domainContexts.removeValue(forKey: Configuration.catchAllDomain) } else { domainContexts[Configuration.catchAllDomain] = v }
+                    Configuration.domainContexts = domainContexts
+                }
+            ForEach(domainContexts.keys.filter { $0 != Configuration.catchAllDomain }.sorted(), id: \.self) { domain in
                 LabeledContent(domain) { Text(domainContexts[domain] ?? "").foregroundStyle(.secondary) }
             }
             .onDelete { offsets in
-                let keys = domainContexts.keys.sorted()
+                let keys = domainContexts.keys.filter { $0 != Configuration.catchAllDomain }.sorted()
                 for i in offsets { domainContexts.removeValue(forKey: keys[i]) }
                 Configuration.domainContexts = domainContexts
             }
@@ -309,7 +318,7 @@ struct SettingsTab: View {
         } header: {
             Text("Pre-filled Receptor")
         } footer: {
-            Text("\"Pre-filled Receptor\" in the share sheet appends the matching context (sent as \"link $ context\"); links from other sites are sent as-is.")
+            Text("\"Pre-filled Receptor\" in the share sheet appends the context for the matching site, else the one for all other links (sent as \"link $ context\"). Leave both empty and it sends as-is.")
         }
     }
     #endif
