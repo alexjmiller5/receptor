@@ -14,7 +14,7 @@ Every capture surface is native - there are no Shortcuts in the loop:
 | Share sheet, actions list: "Receptor 📥" | ReceptorSend | no-UI action extension (`NSExtensionRequestHandling`): sends the link/text as-is |
 | Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with an "Enter your context" alert, sends `input $ context` |
 | Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | no-UI action extension: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else as-is |
-| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating centered prompt, Return sends, banner confirms) - the main window never opens for a capture |
+| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating non-activating prompt, Return sends, banner confirms) - callers use `open -g` so the app is never activated and the main window never opens for a capture |
 
 All three extensions share `Shared/ExtensionInput.swift` (read the input, queue via `ShareCapture`, complete the request). They are `com.apple.ui-services` (action) extensions on purpose: a share extension would show up in the app-icon row, these land in the actions list below it, where the Shortcuts they replace used to be.
 
@@ -100,7 +100,7 @@ iOS build rules:
 - **Recept** - The verb for capturing and sending a thought (e.g., `receptThought()`)
 - **SyncManager** - Singleton that handles all sync operations, network monitoring, and background wake
 - **App Group** - `group.com.alexmiller.receptor` on both platforms; the SwiftData store, settings (`Configuration.sharedDefaults`), upload payload files and the debug log all live in the group container so the extensions see them. iOS migrates a pre-App-Group install once (`Configuration.migrateLegacyContainerIfNeeded`).
-- **Extension uploads** - an extension cannot wait for a response, so `ShareCapture` marks the thought `.sending` and hands the upload to a background `URLSession` with a shared identifier; the app re-creates that session on launch (`SyncManager.backgroundSessionIdentifiers`) so the same delegate marks the thought sent/rejected
+- **Extension uploads** - a share-sheet extension uploads directly while it is alive (`ShareCapture.capture`, 10 s timeout) and writes the real outcome: `.sent`, `.rejected`, or left `.queued` for the app's flush. It holds a 20 s lock meanwhile, which the app's flush honors. Never hand an extension's upload to a background `URLSession`: a small upload finishes while the extension is still alive, the completion is delivered there, and the app never learns the row was sent
 
 ## Source stamp
 

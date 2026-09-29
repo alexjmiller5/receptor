@@ -2,6 +2,7 @@ import AppIntents
 import SwiftData
 import Foundation
 import os.log
+import UserNotifications
 
 private let intentLog = OSLog(subsystem: "com.alexmiller.receptor", category: "Intent")
 
@@ -64,6 +65,14 @@ struct CaptureThoughtIntent: AppIntent {
         let result = Configuration.isConfigured
             ? "Queued"
             : "Queued locally — Receptor is not configured (open Settings)"
+        if Configuration.isConfigured {
+            // The Shortcut showed a checkmark when it finished; this is the
+            // same beat, with the text. Not configured has its own warning.
+            let content = UNMutableNotificationContent()
+            content.title = "Receptor 💭 ✓"
+            content.body = String(text.prefix(200))
+            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        }
         os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
         return .result(value: result)
     }

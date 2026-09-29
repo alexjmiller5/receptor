@@ -17,7 +17,11 @@ final class ContextViewController: UIViewController {
             }
             let host = UIHostingController(rootView: ContextPromptCard(
                 onDone: { [weak self] context in
-                    ExtensionInput.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext)
+                    // Hide the card at once; the upload and the banner follow.
+                    self?.children.first?.view.isHidden = true
+                    Task { @MainActor in
+                        await ExtensionInput.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext)
+                    }
                 },
                 onCancel: { [weak self] in
                     self?.extensionContext?.cancelRequest(withError: CocoaError(.userCancelled))

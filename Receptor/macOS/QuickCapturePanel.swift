@@ -3,10 +3,18 @@ import AppKit
 import SwiftUI
 import UserNotifications
 
+/// A panel that takes the keyboard without activating its app, so the app the
+/// user was in stays frontmost and gets focus back when the panel closes.
+final class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+}
+
 /// `receptor://compose` on the Mac: a small floating prompt, centered, the way
-/// the old "Receptor 💭" Shortcut asked for a thought - no main window. Return
-/// sends (Shift+Return for a newline), Escape cancels; the panel closes itself
-/// and a banner confirms what was sent.
+/// the old "Receptor 💭" Shortcut asked for a thought - no main window, no app
+/// activation (callers use `open -g`). Return sends (Shift+Return for a
+/// newline), Escape cancels; the panel closes itself and a banner confirms
+/// what was sent.
 @MainActor
 final class QuickCapturePanel {
     static let shared = QuickCapturePanel()
@@ -21,8 +29,18 @@ final class QuickCapturePanel {
             onSend: { [weak self] text in self?.send(text) },
             onCancel: { [weak self] in self?.close() }
         ))
-        let panel = NSPanel(contentViewController: host)
-        panel.styleMask = [.titled, .fullSizeContentView, .nonactivatingPanel]
+        // .nonactivatingPanel only takes effect when set at init.
+        let panel = KeyablePanel(
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 190),
+            styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
+            backing: .buffered, defer: false
+        )
+        panel.contentViewController = host
+        panel.becomesKeyOnlyIfNeeded = false
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        for button in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {
+            panel.standardWindowButton(button)?.isHidden = true
+        }
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
         panel.isFloatingPanel = true

@@ -54,7 +54,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
-        let matches = SyncManager.backgroundSessionIdentifiers.contains(identifier)
+        let matches = identifier == SyncManager.backgroundSessionIdentifier
         os_log("[LIFECYCLE] handleEventsForBackgroundURLSession — identifier=%{public}@ matches=%{public}d pid=%d proc=%{public}@", log: lifecycleLog, type: .default, identifier, matches ? 1 : 0, pid, proc)
         DebugFileLog.write("[LIFECYCLE] handleEventsForBackgroundURLSession id=\(identifier) matches=\(matches) pid=\(pid)")
 

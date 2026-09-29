@@ -59,20 +59,6 @@ final class SyncManager: ObservableObject {
         return URLSession(configuration: config, delegate: backgroundSessionDelegate, delegateQueue: nil)
     }()
 
-    /// The share extension's upload session. The extension creates tasks on it
-    /// and exits; the app re-creates the session by identifier so the same
-    /// delegate receives their completions (ShareCapture.swift).
-    private lazy var shareSession: URLSession = {
-        let config = URLSessionConfiguration.background(withIdentifier: ShareCapture.backgroundSessionIdentifier)
-        config.sharedContainerIdentifier = Configuration.appGroupIdentifier
-        config.isDiscretionary = false
-        config.sessionSendsLaunchEvents = true
-        config.waitsForConnectivity = true
-        return URLSession(configuration: config, delegate: backgroundSessionDelegate, delegateQueue: nil)
-    }()
-
-    static let backgroundSessionIdentifiers = [backgroundSessionIdentifier, ShareCapture.backgroundSessionIdentifier]
-
     private let backgroundSessionDelegate = BackgroundSessionDelegate()
 
     private init() {
@@ -94,9 +80,6 @@ final class SyncManager: ObservableObject {
         os_log("[SYNC] reconnectBackgroundSession() — touching session | %{public}@", log: syncLog_os, type: .default, processTag())
         DebugFileLog.write("[SYNC] reconnectBackgroundSession()")
         _ = backgroundSession
-        #if os(iOS)
-        _ = shareSession
-        #endif
         os_log("[SYNC] reconnectBackgroundSession() — done", log: syncLog_os, type: .default)
     }
 
@@ -192,7 +175,12 @@ final class SyncManager: ObservableObject {
             return
         }
 
-        let pending = allThoughts.filter { $0.status == .queued || $0.status == .failed }
+        // A lock means someone is sending it right now (a share-sheet
+        // extension holds one for the seconds its upload takes).
+        let now = Date()
+        let pending = allThoughts.filter {
+            ($0.status == .queued || $0.status == .failed) && ($0.lockedUntil ?? .distantPast) <= now
+        }
 
         if pending.isEmpty {
             os_log("[UPLOAD] EMPTY — no pending thoughts", log: uploadLog, type: .default)
@@ -312,9 +300,14 @@ final class SyncManager: ObservableObject {
             let descriptor = FetchDescriptor<Thought>(predicate: #Predicate {
                 $0.status == sentStatus && $0.sentAt != nil && $0.sentAt! > fiveMinutesAgo
             })
-            if let recentlySent = try? context.fetch(descriptor), !recentlySent.isEmpty {
-                Task {
-                    await sendNotification(count: recentlySent.count, trigger: .backgroundWake)
+            // Thoughts captured through the Recept intent already got their
+            // own banner with the text; do not announce them twice.
+            if let recentlySent = try? context.fetch(descriptor) {
+                let others = recentlySent.filter { $0.sentVia != .captureIntent }
+                if !others.isEmpty {
+                    Task {
+                        await sendNotification(count: others.count, trigger: .backgroundWake)
+                    }
                 }
             }
         }
@@ -342,6 +335,16 @@ final class SyncManager: ObservableObject {
         var reducedCount = 0
 
         for thought in sendingThoughts {
+            // Share-sheet extensions never leave a row in .sending; one that
+            // is comes from the retired background-session path, whose
+            // completion the app could not observe. Send it again (the
+            // server drops exact resends).
+            if thought.sentVia == .shareExtension {
+                thought.status = .queued
+                thought.lockedUntil = nil
+                reducedCount += 1
+                continue
+            }
             if thought.lockedUntil == Date.distantFuture {
                 thought.lockedUntil = gracePeriod
                 reducedCount += 1
@@ -387,9 +390,8 @@ final class SyncManager: ObservableObject {
             return
         }
 
-        // Check both background sessions for active tasks (a share-sheet upload
-        // still in flight is not an orphan)
-        let sessions = [backgroundSession, shareSession]
+        // Check the background session for active tasks
+        let sessions = [backgroundSession]
         Task { [weak self] in
             var activeTaskIds = Set<String>()
             for session in sessions {
