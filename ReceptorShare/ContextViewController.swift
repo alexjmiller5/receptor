@@ -3,12 +3,11 @@ import SwiftUI
 
 /// "Receptor 📤 💭": asks for a context the way the Shortcut's "Ask for Input"
 /// did - a card at the top of the screen with the prompt, a text field and
-/// Done, nothing dimmed behind it - then sends `input $ context`. An empty
-/// context sends the input alone.
-final class ContextViewController: UIViewController {
+/// Done, nothing dimmed behind it - then sends `input $ context` and confirms.
+/// An empty context sends the input alone.
+final class ContextViewController: CaptureViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .clear
         Task { @MainActor in
             let text = await ExtensionInput.text(from: extensionContext)
             guard !text.isEmpty else {
@@ -17,10 +16,8 @@ final class ContextViewController: UIViewController {
             }
             let host = UIHostingController(rootView: ContextPromptCard(
                 onDone: { [weak self] context in
-                    // Hide the card at once; the upload and the banner follow.
-                    self?.children.first?.view.isHidden = true
                     Task { @MainActor in
-                        await ExtensionInput.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext)
+                        await self?.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context")
                     }
                 },
                 onCancel: { [weak self] in
