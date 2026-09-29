@@ -14,7 +14,7 @@ Every capture surface is native - there are no Shortcuts in the loop:
 | Share sheet, actions list: "Receptor 📥" | ReceptorSend | no-UI action extension (`NSExtensionRequestHandling`): sends the link/text as-is |
 | Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with an "Enter your context" alert, sends `input $ context` |
 | Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | no-UI action extension: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else as-is |
-| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`; `receptor://compose` opens the window |
+| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating centered prompt, Return sends, banner confirms) - the main window never opens for a capture |
 
 All three extensions share `Shared/ExtensionInput.swift` (read the input, queue via `ShareCapture`, complete the request). They are `com.apple.ui-services` (action) extensions on purpose: a share extension would show up in the app-icon row, these land in the actions list below it, where the Shortcuts they replace used to be.
 

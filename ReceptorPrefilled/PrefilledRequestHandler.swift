@@ -7,7 +7,7 @@ final class PrefilledRequestHandler: NSObject, NSExtensionRequestHandling {
         Task { @MainActor in
             let text = await ExtensionInput.text(from: context)
             let filled = Configuration.defaultContext(for: text).map { "\(text) $ \($0)" } ?? text
-            ExtensionInput.capture(filled, source: "share-prefilled", context: context)
+            ExtensionInput.capture(filled, source: "share-prefilled", title: "Pre-filled Receptor 📤", context: context)
         }
     }
 }

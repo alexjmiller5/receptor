@@ -5,7 +5,7 @@ final class SendRequestHandler: NSObject, NSExtensionRequestHandling {
     func beginRequest(with context: NSExtensionContext) {
         Task { @MainActor in
             let text = await ExtensionInput.text(from: context)
-            ExtensionInput.capture(text, source: "share-send", context: context)
+            ExtensionInput.capture(text, source: "share-send", title: "Receptor 📥", context: context)
         }
     }
 }
