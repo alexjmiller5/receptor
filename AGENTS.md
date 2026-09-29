@@ -11,12 +11,12 @@ Every capture surface is native - there are no Shortcuts in the loop:
 | Surface | Target | Mechanism |
 |---|---|---|
 | Lock Screen widget, Control Center, Action Button, Siri, Spotlight | Receptor | the `Recept` App Shortcut (`CaptureThoughtIntent`): run without a thought, iOS asks in its own sheet ("Enter your thought 💭", multi-line) and the app never opens. The user adds it through the system Shortcuts widget / "Shortcut" control - the app ships no widget of its own |
-| Share sheet, actions list: "Receptor 📥" | ReceptorSend | action extension, transparent screen: sends the link/text as-is |
-| Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with an "Enter your context" alert, sends `input $ context` |
-| Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | action extension, transparent screen: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else the catch-all, else as-is |
+| Share sheet, actions list: "Receptor 📥" | ReceptorSend | action extension, no screen: sends the link/text as-is |
+| Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with a sheet asking "Enter your context", sends `input $ context` |
+| Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | action extension, no screen: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else the catch-all, else as-is |
 | Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating non-activating prompt, Return sends, banner confirms) - callers use `open -g` so the app is never activated and the main window never opens for a capture |
 
-All three subclass `ExtensionUI/CaptureViewController` (run one `ShareCapture`, show `CaptureHUD` - a pill at the top with the outcome and the text - for about a second, complete the request). The HUD is the confirmation; extensions post no notifications. They are `com.apple.ui-services` (action) extensions on purpose: a share extension would show up in the app-icon row, these land in the actions list below it, where the Shortcuts they replace used to be.
+The two one-tap actions are `NSExtensionRequestHandling` handlers with no screen; the context action is a view controller. All three end in `ExtensionInput.finish`: one `ShareCapture`, a notification banner with the outcome and the text, `completeRequest`. **Why a banner:** iOS puts any extension that shows its own view into a full-height opaque sheet (a clear background does not show the host through), so a custom pill or HUD always sits on a blank card covering the page. The banner is the only confirmation that leaves the page visible. It needs the app's notification permission; Settings shows when it is off.
 
 See the Synapse repo's `../synapse/AGENTS.md` for comprehensive documentation including architecture and the sync model.
 
@@ -47,6 +47,7 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just gen` | Regenerate `Receptor.xcodeproj` from `project.yml` (every other verb runs it first) |
 | `just dev` | Open Xcode |
 | `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
+| `just sim-share "<action>"` | Run a share-sheet action on a simulator against a fake backend; leaves step screenshots and every distinct frame. **Look at them before any phone install that touches a share action** |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build into `build/Receptor.ipa` + install over the local network; phone unreachable = ask the owner: `just ota` or cable |
 | `just ota` | Serve `build/Receptor.ipa` as an install page on this machine's tailnet name (one tap on the phone, any network; blocks while serving) |
@@ -147,7 +148,7 @@ Shared/                        # compiled into the app AND both extensions
 ├── Thought.swift              # SwiftData model + ThoughtStatus/SyncTrigger, uploadPayload
 ├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
 ├── DeepLink.swift             # receptor://compose and receptor://recept parsing
-├── ExtensionInput.swift       # reads the share-sheet input
+├── ExtensionInput.swift       # reads the share-sheet input; finish() = capture + banner + completeRequest
 ├── ShareCapture.swift         # extension-side enqueue + background upload
 ├── Extension.entitlements     # App Group, shared by the three extensions
 └── DebugFileLog.swift
@@ -157,11 +158,13 @@ Receptor/                      # the app (iOS + macOS)
 ├── Intents/                   # App Shortcuts (CaptureThoughtIntent, ReceptQueueIntent)
 ├── Views/                     # ContentView, ThoughtsTab, ComposeView, ComposeRouter, SettingsTab, ...
 └── macOS/                     # MenuBarView (status item + deep links), LoginItemManager
-ExtensionUI/                   # CaptureViewController + CaptureHUD, extensions only (UIKit)
 ReceptorSend/                  # "Receptor 📥" action extension
 ReceptorShare/                 # "Receptor 📤 💭" action extension (context alert)
 ReceptorPrefilled/             # "Pre-filled Receptor 📤" action extension
+ReceptorUITests/               # drives the real share sheet in Safari on a simulator
 scripts/asc-adhoc-profiles.py  # register App IDs + mint the Ad Hoc profiles
+scripts/sim-share-test.sh      # just sim-share: fake backend + UI test + frame capture
+scripts/ota-install.sh         # just ota: tailnet install page
 ```
 
 ## Critical Rules

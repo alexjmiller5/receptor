@@ -130,3 +130,11 @@ mac-dev-run: gen
       -destination "platform=macOS" -configuration Debug \
       -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
     open build/DerivedData/Build/Products/Debug/{{app}}.app
+
+# --- project-specific ---
+
+# Run one share-sheet action on a simulator against a fake backend and keep
+# screenshots of every step plus every distinct frame (banners, sheets).
+# Look at them before any install: just sim-share "Receptor 📥"
+sim-share action out="":
+    ./scripts/sim-share-test.sh "{{action}}" {{out}}
