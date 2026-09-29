@@ -2,8 +2,9 @@ import UIKit
 import SwiftUI
 
 /// "Receptor 📤 💭": asks for a context the way the Shortcut's "Ask for Input"
-/// did - a card at the bottom with the prompt, a text field and Done - then
-/// sends `input $ context`. An empty context sends the input alone.
+/// did - a card at the top of the screen with the prompt, a text field and
+/// Done, nothing dimmed behind it - then sends `input $ context`. An empty
+/// context sends the input alone.
 final class ContextViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -16,7 +17,7 @@ final class ContextViewController: UIViewController {
             }
             let host = UIHostingController(rootView: ContextPromptCard(
                 onDone: { [weak self] context in
-                    ExtensionInput.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", context: self?.extensionContext)
+                    ExtensionInput.capture(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext)
                 },
                 onCancel: { [weak self] in
                     self?.extensionContext?.cancelRequest(withError: CocoaError(.userCancelled))
@@ -39,8 +40,7 @@ struct ContextPromptCard: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.black.opacity(0.35).ignoresSafeArea().onTapGesture(perform: onCancel)
+        VStack {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     Button("Cancel", action: onCancel)
@@ -63,8 +63,10 @@ struct ContextPromptCard: View {
             .padding(20)
             .frame(maxWidth: .infinity)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28))
+            .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
             .padding(.horizontal, 8)
-            .padding(.bottom, 8)
+            .padding(.top, 8)
+            Spacer()
         }
         .onAppear { focused = true }
     }
