@@ -43,7 +43,7 @@ enum SyncTrigger: String, Codable {
         case .manualRetry: "manualRetry"
         case .pullToRefresh: "pullToRefresh"
         case .backgroundWake: "backgroundSession.uploadTask()"
-        case .shareExtension: "ShareCapture.enqueue()"
+        case .shareExtension: "ShareCapture.capture()"
         case .deepLink: "DeepLink.recept"
         case .unknown: "?"
         }

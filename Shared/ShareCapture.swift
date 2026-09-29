@@ -1,12 +1,16 @@
 import Foundation
 import SwiftData
 
-/// The share-sheet extensions' capture path: persist the thought in the shared store
-/// and hand its upload to the OS through a background URLSession. The extension
-/// exits right after; the app owns the session's completion (see
-/// `SyncManager.reconnectBackgroundSession` and AppDelegate).
+/// The share-sheet extensions' capture path: persist the thought in the shared
+/// store, upload it right away while the extension is alive, and record what
+/// actually happened. Anything that did not go through stays `.queued` for the
+/// app's normal flush.
 enum ShareCapture {
-    static let backgroundSessionIdentifier = "com.alexmiller.receptor.share-upload"
+    enum Outcome {
+        case sent
+        case queued
+        case rejected(Int)
+    }
 
     static func makeContainer() throws -> ModelContainer {
         guard let url = Configuration.storeURL else { throw ShareCaptureError.noContainer }
@@ -14,45 +18,50 @@ enum ShareCapture {
     }
 
     @MainActor
-    static func enqueue(text: String, source: String, container: ModelContainer) throws {
+    static func capture(text: String, source: String, container: ModelContainer) async throws -> Outcome {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw ShareCaptureError.emptyText }
         let context = container.mainContext
         let thought = Thought(text: trimmed, source: source)
+        // Held while this upload runs so an app flush in the same seconds
+        // does not send it a second time.
+        thought.lockedUntil = Date().addingTimeInterval(20)
         context.insert(thought)
         context.insert(SyncLogEntry(timestamp: Date(), message: "Queued (share sheet): \(trimmed.prefix(30))...", trigger: .shareExtension))
         try context.save()
-        DebugFileLog.write("[SHARE] queued id=\(thought.id.uuidString.prefix(8))")
+        let id = String(thought.id.uuidString.prefix(8))
 
-        // Not configured: leave it .queued; the app flushes it after setup and
-        // warns the user itself.
-        guard let apiKey = Configuration.apiKey,
-              let proxySecret = Configuration.proxySecret,
-              let baseURL = Configuration.intakerURL,
-              let fileURL = Configuration.uploadFileURL(for: thought.id),
-              let body = try? JSONEncoder().encode(thought.uploadPayload) else { return }
-        try body.write(to: fileURL, options: .atomic)
-
-        var request = URLRequest(url: baseURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
-        request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
-
-        let config = URLSessionConfiguration.background(withIdentifier: backgroundSessionIdentifier)
-        config.sharedContainerIdentifier = Configuration.appGroupIdentifier
-        config.isDiscretionary = false
-        config.sessionSendsLaunchEvents = true
-        config.waitsForConnectivity = true
-        let task = URLSession(configuration: config).uploadTask(with: request, fromFile: fileURL)
-        task.taskDescription = thought.id.uuidString
-        task.resume()
-
-        thought.status = .sending
-        thought.sentVia = .shareExtension
-        thought.lockedUntil = .distantFuture
+        var outcome = Outcome.queued
+        if let apiKey = Configuration.apiKey,
+           let proxySecret = Configuration.proxySecret,
+           let url = Configuration.intakerURL,
+           let body = try? JSONEncoder().encode(thought.uploadPayload) {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.timeoutInterval = 10
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
+            request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
+            if let (_, response) = try? await URLSession.shared.data(for: request),
+               let http = response as? HTTPURLResponse {
+                if (200...299).contains(http.statusCode) {
+                    thought.status = .sent
+                    thought.sentAt = Date()
+                    thought.sentVia = .shareExtension
+                    outcome = .sent
+                } else if (400...499).contains(http.statusCode) {
+                    thought.status = .rejected
+                    thought.retryCount += 1
+                    thought.lastError = "HTTP \(http.statusCode)"
+                    outcome = .rejected(http.statusCode)
+                }
+            }
+        }
+        thought.lockedUntil = nil
         try context.save()
-        DebugFileLog.write("[SHARE] upload enqueued id=\(thought.id.uuidString.prefix(8)) taskId=\(task.taskIdentifier)")
+        DebugFileLog.write("[SHARE] id=\(id) source=\(source) outcome=\(outcome)")
+        return outcome
     }
 }
 

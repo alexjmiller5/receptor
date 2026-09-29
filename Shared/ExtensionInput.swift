@@ -20,20 +20,22 @@ enum ExtensionInput {
         return ""
     }
 
-    /// Queue `text`, confirm with a self-dismissing banner showing what was
-    /// sent (the extension has no other way to give feedback), finish the
-    /// request; an empty input is a cancel.
+    /// Send `text`, confirm with a self-dismissing banner showing what was
+    /// sent and whether it went through (the extension has no other way to
+    /// give feedback), finish the request; an empty input is a cancel.
     @MainActor
-    static func capture(_ text: String, source: String, title: String, context: NSExtensionContext?) {
+    static func capture(_ text: String, source: String, title: String, context: NSExtensionContext?) async {
         do {
-            try ShareCapture.enqueue(text: text, source: source, container: try ShareCapture.makeContainer())
+            let outcome = try await ShareCapture.capture(text: text, source: source, container: try ShareCapture.makeContainer())
             let content = UNMutableNotificationContent()
-            content.title = "\(title) ✓"
-            content.body = String(text.prefix(200))
-            content.sound = nil
-            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) { _ in
-                context?.completeRequest(returningItems: nil)
+            switch outcome {
+            case .sent: content.title = "\(title) ✓"
+            case .queued: content.title = "\(title) - queued, sends on the next sync"
+            case .rejected(let code): content.title = "\(title) - rejected (HTTP \(code))"
             }
+            content.body = String(text.prefix(200))
+            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+            context?.completeRequest(returningItems: nil)
         } catch {
             context?.cancelRequest(withError: error)
         }
