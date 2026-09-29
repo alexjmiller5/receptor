@@ -54,7 +54,6 @@
 		E843A119A8814870D50B6B9F /* ReceptorSend.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F296E061A6C2DFC57486B1C5 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
 		F2B8AA20B6232731AAD0F000 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
-		F3341F67B1BE52663F22D1D5 /* QuickCapturePanel 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0788AB95DCC1BA0C59734A9D /* QuickCapturePanel 2.swift */; };
 		FFDF9D29B07B822E4B7ADAE0 /* CaptureThoughtIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E8B5DAC90BBD615FEF30EC /* CaptureThoughtIntent.swift */; };
 /* End PBXBuildFile section */
 
@@ -101,7 +100,6 @@
 /* Begin PBXFileReference section */
 		00089947B8366F367A0E8B9A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		024413C3A2895403B040237B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		0788AB95DCC1BA0C59734A9D /* QuickCapturePanel 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "QuickCapturePanel 2.swift"; sourceTree = "<group>"; };
 		0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorSend.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FB947A3023E10EE18A9672F /* Receptor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Receptor.entitlements; sourceTree = "<group>"; };
 		1273D28A97C9F1A4D6D262B5 /* Receptor.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Receptor.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -198,7 +196,6 @@
 			children = (
 				89187ADDF0DF3E684D3B8814 /* LoginItemManager.swift */,
 				CC1772787F8F695DE5C7D4A8 /* MenuBarView.swift */,
-				0788AB95DCC1BA0C59734A9D /* QuickCapturePanel 2.swift */,
 				8FBAAAEA6907B4253B04C516 /* QuickCapturePanel.swift */,
 			);
 			path = macOS;
@@ -491,7 +488,6 @@
 				4EA9428C7181CC238D9125D0 /* ExtensionInput.swift in Sources */,
 				33158AA291D521E465EF3740 /* LoginItemManager.swift in Sources */,
 				C08973FD443305901F8B452F /* MenuBarView.swift in Sources */,
-				F3341F67B1BE52663F22D1D5 /* QuickCapturePanel 2.swift in Sources */,
 				0D001C2D968D153AC7A043F4 /* QuickCapturePanel.swift in Sources */,
 				1071450872F7820F1665F7C8 /* ReceptQueueIntent.swift in Sources */,
 				686560F90C31513881C13D85 /* ReceptorApp.swift in Sources */,
