@@ -14,5 +14,5 @@ jobs:
         with:
           xcode-version: latest-stable
       - name: Install build tools
-        run: brew install just
+        run: brew install just xcodegen
       - run: just check
