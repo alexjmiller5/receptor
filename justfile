@@ -47,10 +47,11 @@ build: gen
       xcrun devicectl device install app --device {{device_id}} "$APP"
 
 # iOS STABLE build + install: Ad Hoc distribution, 1-year validity, no logs.
-# Run `just signing-setup` first if the keychain cache is empty.
+# Run `just signing-setup` first if the keychain cache is empty. Builds for
+# generic iOS so the phone is only needed for the install step.
 deploy: gen
     xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
-      -destination "platform=iOS,id={{device_id}}" \
+      -destination "generic/platform=iOS" \
       -configuration Release \
       CODE_SIGN_STYLE="Manual" \
       CODE_SIGN_IDENTITY="Apple Distribution" \
