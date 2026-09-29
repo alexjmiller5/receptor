@@ -109,8 +109,14 @@ struct QuickCaptureView: View {
                     .disabled(trimmed.isEmpty)
             }
         }
-        .padding(16)
+        // The panel has a hidden, full-size title bar: without ignoring its
+        // safe area the content starts a title bar's height too low. Top
+        // padding equals the gap under the heading.
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 16)
         .frame(width: 460)
+        .ignoresSafeArea()
         .onAppear { focused = true }
     }
 }
