@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 #if os(iOS)
 import UniformTypeIdentifiers
+import UserNotifications
 #endif
 
 /// Wrapper to make URL work with .sheet(item:)
@@ -42,6 +43,7 @@ struct SettingsTab: View {
     private var iOSSettings: some View {
         NavigationStack {
             Form {
+                confirmationsSection
                 shareDefaultsSection
                 connectionSection
                 requestFormatSection
@@ -279,6 +281,33 @@ struct SettingsTab: View {
     @State private var newContext = ""
 
     @State private var catchAllContext = Configuration.domainContexts[Configuration.catchAllDomain] ?? ""
+    @State private var bannersEnabled = true
+
+    /// Every capture outside the app confirms with a notification banner;
+    /// say so plainly when iOS will not show one.
+    @ViewBuilder
+    private var confirmationsSection: some View {
+        Section {
+            if bannersEnabled {
+                Label("Banners confirm each capture", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Label("Notifications are off, so captures cannot confirm", systemImage: "bell.slash.fill")
+                    .foregroundStyle(.orange)
+                Button("Open Notification Settings") {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            }
+        } header: {
+            Text("Confirmations")
+        }
+        .task {
+            let settings = await UNUserNotificationCenter.current().notificationSettings()
+            bannersEnabled = settings.authorizationStatus == .authorized && settings.alertSetting == .enabled
+        }
+    }
 
     private var shareDefaultsSection: some View {
         Section {

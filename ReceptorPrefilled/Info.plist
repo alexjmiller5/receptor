@@ -35,7 +35,7 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.ui-services</string>
 		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).PrefilledViewController</string>
+		<string>$(PRODUCT_MODULE_NAME).PrefilledRequestHandler</string>
 	</dict>
 </dict>
 </plist>
