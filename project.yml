@@ -14,7 +14,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_EMIT_LOC_STRINGS: YES
     CURRENT_PROJECT_VERSION: 1
-    MARKETING_VERSION: 1.5.1
+    MARKETING_VERSION: 1.5.2
     # Team is injected on the command line (justfile / CI); never committed.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
@@ -80,7 +80,7 @@ targets:
   ReceptorShare:
     type: app-extension
     platform: iOS
-    sources: [ReceptorShare, Shared, ExtensionAssets]
+    sources: [ReceptorShare, Shared, ExtensionUI, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.share
@@ -109,7 +109,7 @@ targets:
   ReceptorSend:
     type: app-extension
     platform: iOS
-    sources: [ReceptorSend, Shared, ExtensionAssets]
+    sources: [ReceptorSend, Shared, ExtensionUI, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.send
@@ -130,7 +130,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.ui-services
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SendRequestHandler
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SendViewController
           NSExtensionAttributes:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
@@ -138,7 +138,7 @@ targets:
   ReceptorPrefilled:
     type: app-extension
     platform: iOS
-    sources: [ReceptorPrefilled, Shared, ExtensionAssets]
+    sources: [ReceptorPrefilled, Shared, ExtensionUI, ExtensionAssets]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.prefilled
@@ -159,7 +159,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.ui-services
-          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PrefilledRequestHandler
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PrefilledViewController
           NSExtensionAttributes:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
