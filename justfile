@@ -46,19 +46,37 @@ build: gen
     APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/{{app}}-*/Build/Products/Debug-iphoneos/{{app}}.app | head -1) && \
       xcrun devicectl device install app --device {{device_id}} "$APP"
 
-# iOS STABLE build + install: Ad Hoc distribution, 1-year validity, no logs.
-# Run `just signing-setup` first if the keychain cache is empty. Builds for
-# generic iOS so the phone is only needed for the install step.
+# iOS STABLE build: Ad Hoc distribution, no logs, packaged as build/Receptor.ipa,
+# then installed over the local network. Run `just signing-setup` first if the
+# keychain cache is empty. Builds for generic iOS, so the phone is only needed
+# for the install; when it is unreachable, ask the owner: `just ota` or cable.
 deploy: gen
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dd="$HOME/Library/Developer/Xcode/DerivedData/{{app}}-deploy"
     xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
       -destination "generic/platform=iOS" \
-      -configuration Release \
+      -configuration Release -derivedDataPath "$dd" \
       CODE_SIGN_STYLE="Manual" \
       CODE_SIGN_IDENTITY="Apple Distribution" \
       DEVELOPMENT_TEAM={{team_id}} \
       clean build
-    APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/{{app}}-*/Build/Products/Release-iphoneos/{{app}}.app | head -1) && \
-      xcrun devicectl device install app --device {{device_id}} "$APP"
+    stage=$(mktemp -d); mkdir -p "$stage/Payload" build
+    cp -R "$dd/Build/Products/Release-iphoneos/{{app}}.app" "$stage/Payload/"
+    rm -f "build/{{app}}.ipa"
+    (cd "$stage" && zip -qry "$OLDPWD/build/{{app}}.ipa" Payload) && rm -rf "$stage"
+    echo "wrote build/{{app}}.ipa"
+    if xcrun devicectl device install app --device {{device_id}} "build/{{app}}.ipa"; then exit 0; fi
+    echo "install failed: the phone is not reachable over the local network"
+    echo "ask the owner which they prefer:"
+    echo "  tailnet  just ota   (install link, one tap, any network)"
+    echo "  cable    plug the phone in, then: xcrun devicectl device install app --device {{device_id}} build/{{app}}.ipa"
+    exit 1
+
+# Serve build/Receptor.ipa as an install page on this machine's tailnet name
+# (blocks while serving; OTA_TTL seconds, default 900).
+ota:
+    ./scripts/ota-install.sh "build/{{app}}.ipa"
 
 # Pull signing material from the 1P `Apple Signing` vault into the login
 # keychain + profile dirs. 1P is the only durable home for certs — the local

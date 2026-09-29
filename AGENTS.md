@@ -48,7 +48,8 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just dev` | Open Xcode |
 | `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
-| `just deploy` | iOS STABLE build + cable install (1-year Ad Hoc signing) |
+| `just deploy` | iOS STABLE build into `build/Receptor.ipa` + install over the local network; phone unreachable = ask the owner: `just ota` or cable |
+| `just ota` | Serve `build/Receptor.ipa` as an install page on this machine's tailnet name (one tap on the phone, any network; blocks while serving) |
 | `just signing-setup` | Pull the Apple Distribution cert + the three Ad Hoc profiles from 1Password into the keychain / profile dirs |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
