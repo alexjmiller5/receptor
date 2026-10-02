@@ -46,6 +46,7 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 |---|---|
 | `just gen` | Regenerate `Receptor.xcodeproj` from `project.yml` (every other verb runs it first) |
 | `just dev` | Open Xcode |
+| `just test` | Unit tests (`ReceptorTests`) on a simulator (`IOS_SIMULATOR` picks the device, default iPhone 17) |
 | `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
 | `just sim-share "<action>"` | Run a share-sheet action on a simulator against a fake backend; leaves step screenshots and every distinct frame. **Look at them before any phone install that touches a share action** |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
@@ -56,7 +57,7 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
 | `just mac-dev-run` | Local macOS testing from `build/`, no /Applications install |
 
-No test verb yet — the project has no test target.
+`just test` runs `ReceptorTests` (Swift Testing, pure `Shared/` logic) on an iOS simulator. The simulator build is ad-hoc signed (`CODE_SIGN_IDENTITY=-`): an unsigned build has no App Group entitlement and the app crashes at launch on the nil container.
 
 > **Shortcuts-actions gotcha:** every launched build (DerivedData, `build/`)
 > registers with LaunchServices under `com.alexmiller.receptor`. Deleting those
@@ -107,11 +108,16 @@ iOS build rules:
 ## Source stamp
 
 Every thought carries an optional `source` (`Thought.source`), sent to Synapse
-as the `source` payload field and logged there. The compose sheet stamps
-`Configuration.appSource` (`ios-app` / `macos-app`); `CaptureThoughtIntent`
-exposes it as the optional "Source" parameter, and each shortcut in
-ios-shortcuts/notion passes its own label (`shortcut:<name>`, `hammerspoon`,
-`agent`). Free-form, never parsed by the app.
+as the `source` payload field and logged on the execution's `Source` select.
+Free-form, never parsed by the app; each surface stamps its own label:
+
+| Surface | `source` |
+|---|---|
+| In-app compose button (`ComposeRouter.openCompose()`) | `ios-app` / `macos-app` (`Configuration.appSource`) |
+| `receptor://compose?source=<label>` (iOS sheet / Mac `QuickCapturePanel`) | the link's `source`, else `ios-compose-link` / `macos-panel` |
+| `receptor://recept?text=&source=<label>` | the link's `source` (Hammerspoon: `hammerspoon-hyper-r`, `hammerspoon-hyper-q`, `hammerspoon-chrome-url`; agents: `agent`) |
+| Share sheet actions | `share-send` / `share-context` / `share-prefilled` |
+| `Recept` App Shortcut | its optional Source parameter, else `app-shortcut` (iOS does not tell an intent whether the Lock Screen, Control Center, Action Button, Siri or Spotlight ran it) |
 
 ## Failure surfacing
 
@@ -147,7 +153,7 @@ project.yml                    # XcodeGen spec (targets, Info.plist keys, profil
 Shared/                        # compiled into the app AND both extensions
 ├── Thought.swift              # SwiftData model + ThoughtStatus/SyncTrigger, uploadPayload
 ├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
-├── DeepLink.swift             # receptor://compose and receptor://recept parsing
+├── DeepLink.swift             # receptor://compose?source= and receptor://recept parsing
 ├── ExtensionInput.swift       # reads the share-sheet input; finish() = capture + banner + completeRequest
 ├── ShareCapture.swift         # extension-side enqueue + background upload
 ├── Extension.entitlements     # App Group, shared by the three extensions
@@ -161,6 +167,7 @@ Receptor/                      # the app (iOS + macOS)
 ReceptorSend/                  # "Receptor 📥" action extension
 ReceptorShare/                 # "Receptor 📤 💭" action extension (context alert)
 ReceptorPrefilled/             # "Pre-filled Receptor 📤" action extension
+ReceptorTests/                 # unit tests (just test)
 ReceptorUITests/               # drives the real share sheet in Safari on a simulator
 scripts/asc-adhoc-profiles.py  # register App IDs + mint the Ad Hoc profiles
 scripts/sim-share-test.sh      # just sim-share: fake backend + UI test + frame capture
@@ -171,6 +178,6 @@ scripts/ota-install.sh         # just ota: tailnet install page
 
 1. **Ship changes down the right pipeline** - iOS: cable install via `just deploy` (or `just build` for the debug loop). macOS: test locally with `just mac-dev-run`; users get it by tagging a release — never hand-copy into /Applications
 2. **FIFO ordering** - Flush stops on first failure to preserve order
-6. **Every thought carries a `source`** (`Thought.source`, sent as the `source` payload field and logged by Synapse): `ios-app` / `macos-app` (compose sheet), `share-send` / `share-context` / `share-prefilled` (the three share-sheet entries), `app-shortcut` (the Recept App Shortcut with no source given), `hammerspoon` / `agent` (deep links). Free-form, never parsed by the app
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
-4. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush
+4. **Every thought carries a `source`** naming the surface that captured it (table under Source stamp); a new capture surface gets its own label
+5. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush

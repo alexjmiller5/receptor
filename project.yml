@@ -14,7 +14,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_EMIT_LOC_STRINGS: YES
     CURRENT_PROJECT_VERSION: 1
-    MARKETING_VERSION: 1.5.3
+    MARKETING_VERSION: 1.6.0
     # Team is injected on the command line (justfile / CI); never committed.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
@@ -164,6 +164,22 @@ targets:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
               NSExtensionActivationSupportsText: true
+  # Unit tests for the pure Shared/ logic (deep links, configuration).
+  ReceptorTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [ReceptorTests]
+    dependencies:
+      - target: Receptor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.tests
+        PRODUCT_NAME: ReceptorTests
+        GENERATE_INFOPLIST_FILE: YES
+        # XcodeGen sets TEST_HOST from the dependency but not the loader
+        BUNDLE_LOADER: $(TEST_HOST)
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator
   # Drives the share sheet on a simulator and screenshots each step.
   ReceptorUITests:
     type: bundle.ui-testing
@@ -184,6 +200,7 @@ schemes:
     build:
       targets:
         Receptor: all
+        ReceptorTests: [test]
         ReceptorUITests: [test]
     test:
-      targets: [ReceptorUITests]
+      targets: [ReceptorTests, ReceptorUITests]
