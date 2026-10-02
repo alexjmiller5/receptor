@@ -32,8 +32,7 @@ enum ShareCapture {
         let id = String(thought.id.uuidString.prefix(8))
 
         var outcome = Outcome.queued
-        if let apiKey = Configuration.apiKey,
-           let proxySecret = Configuration.proxySecret,
+        if let token = Configuration.captureToken,
            let url = Configuration.intakerURL,
            let body = try? JSONEncoder().encode(thought.uploadPayload) {
             var request = URLRequest(url: url)
@@ -41,20 +40,22 @@ enum ShareCapture {
             request.timeoutInterval = 10
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
-            request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             if let (_, response) = try? await URLSession.shared.data(for: request),
                let http = response as? HTTPURLResponse {
-                if (200...299).contains(http.statusCode) {
+                switch ThoughtStatus.after(httpStatus: http.statusCode) {
+                case .sent:
                     thought.status = .sent
                     thought.sentAt = Date()
                     thought.sentVia = .shareExtension
                     outcome = .sent
-                } else if (400...499).contains(http.statusCode) {
+                case .rejected:
                     thought.status = .rejected
                     thought.retryCount += 1
                     thought.lastError = "HTTP \(http.statusCode)"
                     outcome = .rejected(http.statusCode)
+                default:
+                    break  // 5xx or a refused credential: stays queued for the app's flush
                 }
             }
         }

@@ -93,16 +93,25 @@ iOS build rules:
 - Device installs use `xcrun devicectl` (wired into the recipes). Alex's iPhone UDID is the justfile default; override with `IOS_DEVICE_ID`.
 - Find connected devices: `xcrun xctrace list devices 2>&1 | grep -i iphone`
 
+## Connection (no developer credentials in the app)
+
+A device talks to its capture service (Synapse's `synapse-capture` endpoint) with its OWN token: `Authorization: Bearer <token>`. The token is minted by the service per device (`just clients issue "<device>"` in the synapse repo prints an enrollment link), never the operator's Modal proxy credentials.
+
+- **Enrollment link**: the https page the service prints opens `receptor://enroll?url=<capture URL>&token=<token>`; `DeepLink.enroll` validates both (`Configuration.validIntakerURL` / `validToken`), `Configuration.enroll` stores them and `SyncManager.connectionChanged()` posts "Receptor connected" and flushes everything queued while unconnected. Settings shows the same two fields for manual entry.
+- **Storage**: the URL in the App Group defaults, the token in the Keychain (`Shared/TokenStore.swift`); on iOS the item uses the App Group as its access group so the share extensions read it, on macOS the login keychain. Launch purges the Modal proxy credentials older builds kept in defaults (`Configuration.purgeLegacyCredentials`).
+- **Refused credential**: 401/403 leaves the thought `.failed` (retried after re-enrollment) and posts one "access was refused" notification; any other 4xx is a payload rejection and is never retried (`ThoughtStatus.after(httpStatus:)`).
+- **Friend-ready**: onboarding someone = `just clients issue "<their device>"` + send the link + an install (Mac: `brew install --cask alexjmiller5/tap/receptor`; iOS: an Ad Hoc build needs their UDID registered - TestFlight would remove that step). Revoking one device touches no other.
+
 ## Secrets
 
-`.env.tpl` is the manifest: release secrets are name-based refs into the shared `Apple Signing` vault; the `Receptor` project vault holds only a placeholder (the app's runtime secrets are entered in Settings, not injected at build). CI's single GH secret is `OP_SERVICE_ACCOUNT_TOKEN` (the `receptor-ci` SA, read on both vaults) — set up once via `op-project-bootstrap .env.tpl --repo alexjmiller5/receptor`.
+`.env.tpl` is the manifest: release secrets are name-based refs into the shared `Apple Signing` vault; the `Receptor` project vault holds only a placeholder (the app's only runtime secret is the per-device token from its enrollment link, kept in the Keychain). CI's single GH secret is `OP_SERVICE_ACCOUNT_TOKEN` (the `receptor-ci` SA, read on both vaults) — set up once via `op-project-bootstrap .env.tpl --repo alexjmiller5/receptor`.
 
 ## Key Concepts
 
 - **Thought** - The core data model (`Models/Thought.swift`), persisted in SwiftData
 - **Recept** - The verb for capturing and sending a thought (e.g., `receptThought()`)
 - **SyncManager** - Singleton that handles all sync operations, network monitoring, and background wake
-- **App Group** - `group.com.alexmiller.receptor` on both platforms; the SwiftData store, settings (`Configuration.sharedDefaults`), upload payload files and the debug log all live in the group container so the extensions see them. iOS migrates a pre-App-Group install once (`Configuration.migrateLegacyContainerIfNeeded`).
+- **App Group** - `group.com.alexmiller.receptor` on both platforms; the SwiftData store, settings (`Configuration.sharedDefaults`), upload payload files and the debug log all live in the group container so the extensions see them (the capture token is in the Keychain, see Connection). iOS migrates a pre-App-Group install once (`Configuration.migrateLegacyContainerIfNeeded`).
 - **Extension uploads** - a share-sheet extension uploads directly while it is alive (`ShareCapture.capture`, 10 s timeout) and writes the real outcome: `.sent`, `.rejected`, or left `.queued` for the app's flush. It holds a 20 s lock meanwhile, which the app's flush honors. Never hand an extension's upload to a background `URLSession`: a small upload finishes while the extension is still alive, the completion is delivered there, and the app never learns the row was sent
 
 ## Source stamp
@@ -153,7 +162,8 @@ project.yml                    # XcodeGen spec (targets, Info.plist keys, profil
 Shared/                        # compiled into the app AND both extensions
 ├── Thought.swift              # SwiftData model + ThoughtStatus/SyncTrigger, uploadPayload
 ├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
-├── DeepLink.swift             # receptor://compose?source= and receptor://recept parsing
+├── DeepLink.swift             # receptor://compose?source=, receptor://recept and receptor://enroll parsing
+├── TokenStore.swift           # the device's capture token in the Keychain
 ├── ExtensionInput.swift       # reads the share-sheet input; finish() = capture + banner + completeRequest
 ├── ShareCapture.swift         # extension-side enqueue + background upload
 ├── Extension.entitlements     # App Group, shared by the three extensions

@@ -14,8 +14,7 @@ struct ExportItem: Identifiable {
 struct SettingsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
     @State private var intakerURL: String = Configuration.intakerURL?.absoluteString ?? ""
-    @State private var apiKey: String = Configuration.apiKey ?? ""
-    @State private var proxySecret: String = Configuration.proxySecret ?? ""
+    @State private var captureToken: String = Configuration.captureToken ?? ""
     @Query private var thoughts: [Thought]
     @State private var exportItem: ExportItem?
 
@@ -94,10 +93,10 @@ struct SettingsTab: View {
                         .font(.headline)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Intaker URL")
+                        Text("Capture URL")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        TextField("https://your-workspace--synapse-webhook.modal.run", text: $intakerURL)
+                        TextField("https://your-workspace--synapse-capture.modal.run", text: $intakerURL)
                             .textFieldStyle(.plain)
                             .font(.system(.body, design: .monospaced))
                             .padding(8)
@@ -115,10 +114,10 @@ struct SettingsTab: View {
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Modal-Key (proxy token ID)")
+                        Text("Access token")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                        SecureField("Enter your Modal proxy token ID", text: $apiKey)
+                        SecureField("This device's token", text: $captureToken)
                             .textFieldStyle(.plain)
                             .font(.system(.body, design: .monospaced))
                             .padding(8)
@@ -128,36 +127,19 @@ struct SettingsTab: View {
                                 RoundedRectangle(cornerRadius: 6)
                                     .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
                             )
-                            .onChange(of: apiKey) { _, newValue in
-                                Configuration.apiKey = newValue.isEmpty ? nil : newValue
-                            }
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Modal-Secret (proxy token secret)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        SecureField("Enter your Modal proxy token secret", text: $proxySecret)
-                            .textFieldStyle(.plain)
-                            .font(.system(.body, design: .monospaced))
-                            .padding(8)
-                            .background(Color(nsColor: .textBackgroundColor))
-                            .cornerRadius(6)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                            )
-                            .onChange(of: proxySecret) { _, newValue in
-                                Configuration.proxySecret = newValue.isEmpty ? nil : newValue
+                            .onChange(of: captureToken) { _, newValue in
+                                if let token = Configuration.validToken(newValue) {
+                                    Configuration.captureToken = token
+                                }
                             }
                     }
 
                     if Configuration.isConfigured {
-                        Label("Configured", systemImage: "checkmark.circle.fill")
+                        Label("Connected", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
                             .font(.caption)
                     } else {
-                        Label("Enter URL and API key to enable syncing", systemImage: "exclamationmark.triangle.fill")
+                        Label("Open an enrollment link on this Mac to connect", systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
                             .font(.caption)
                     }
@@ -355,10 +337,10 @@ struct SettingsTab: View {
     private var connectionSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Intaker URL")
+                Text("Capture URL")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                TextField("https://your-workspace--synapse-webhook.modal.run", text: $intakerURL)
+                TextField("https://your-workspace--synapse-capture.modal.run", text: $intakerURL)
                     #if os(iOS)
                     .textContentType(.URL)
                     .keyboardType(.URL)
@@ -374,43 +356,30 @@ struct SettingsTab: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Modal-Key (proxy token ID)")
+                Text("Access token")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                SecureField("Enter your Modal proxy token ID", text: $apiKey)
+                SecureField("This device's token", text: $captureToken)
                     #if os(iOS)
                     .textContentType(.password)
                     #endif
                     .autocorrectionDisabled()
                     .font(.system(.body, design: .monospaced))
-                    .onChange(of: apiKey) { _, newValue in
-                        Configuration.apiKey = newValue.isEmpty ? nil : newValue
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Modal-Secret (proxy token secret)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                SecureField("Enter your Modal proxy token secret", text: $proxySecret)
-                    #if os(iOS)
-                    .textContentType(.password)
-                    #endif
-                    .autocorrectionDisabled()
-                    .font(.system(.body, design: .monospaced))
-                    .onChange(of: proxySecret) { _, newValue in
-                        Configuration.proxySecret = newValue.isEmpty ? nil : newValue
+                    .onChange(of: captureToken) { _, newValue in
+                        if let token = Configuration.validToken(newValue) {
+                            Configuration.captureToken = token
+                        }
                     }
             }
         } header: {
             Text("Connection")
         } footer: {
             if Configuration.isConfigured {
-                Label("Configured", systemImage: "checkmark.circle.fill")
+                Label("Connected", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.caption)
             } else {
-                Label("Enter URL and both Modal proxy token values to enable syncing", systemImage: "exclamationmark.triangle.fill")
+                Label("Open an enrollment link on this device to connect", systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .font(.caption)
             }
@@ -422,7 +391,7 @@ struct SettingsTab: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("POST {url}")
                     .font(.system(.caption, design: .monospaced))
-                Text("Modal-Key: {token id} · Modal-Secret: {token secret}")
+                Text("Authorization: Bearer {access token}")
                     .font(.system(.caption, design: .monospaced))
                 Text("Content-Type: application/json")
                     .font(.system(.caption, design: .monospaced))

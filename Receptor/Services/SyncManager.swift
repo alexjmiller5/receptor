@@ -155,8 +155,7 @@ final class SyncManager: ObservableObject {
         os_log("[UPLOAD] enqueueBackgroundUploads() — ENTRY trigger=%{public}@ | %{public}@", log: uploadLog, type: .default, trigger.rawValue, processTag())
         DebugFileLog.write("[UPLOAD] enqueueBackgroundUploads() trigger=\(trigger.rawValue)")
 
-        guard let apiKey = Configuration.apiKey,
-              let proxySecret = Configuration.proxySecret,
+        guard let token = Configuration.captureToken,
               let baseURL = Configuration.intakerURL else {
             os_log("[UPLOAD] ABORT — not configured", log: uploadLog, type: .error)
             addLogEntry("UPLOAD-ABORT not configured", trigger: trigger)
@@ -192,7 +191,7 @@ final class SyncManager: ObservableObject {
         os_log("[UPLOAD] ENQUEUING count=%d ids=[%{public}@]", log: uploadLog, type: .default, pending.count, pendingIds)
         addLogEntry("UPLOAD-ENQUEUE count=\(pending.count) ids=[\(pendingIds)]", trigger: trigger)
 
-        // Modal proxy auth: credentials travel as headers, not a query param
+        // This device's own capture token, never a query param
         let requestURL = baseURL
 
         for thought in pending {
@@ -220,8 +219,7 @@ final class SyncManager: ObservableObject {
             var request = URLRequest(url: requestURL)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
-            request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
             // Create background upload task
             let task = backgroundSession.uploadTask(with: request, fromFile: fileURL)
@@ -270,13 +268,14 @@ final class SyncManager: ObservableObject {
             os_log("[UPLOAD] SUCCESS id=%{public}@", log: uploadLog, type: .default, thoughtIdShort)
             addLogEntry("UPLOAD-SUCCESS id=\(thoughtIdShort) code=\(statusCode)", trigger: .backgroundWake)
         } else {
-            // Failure — 4xx means the server definitively refused this payload, never auto-retry
-            thought.status = (error == nil && (400...499).contains(statusCode)) ? .rejected : .failed
+            // Failure — a payload-level 4xx is never auto-retried (ThoughtStatus.after)
+            thought.status = error == nil ? .after(httpStatus: statusCode) : .failed
             thought.retryCount += 1
             thought.lastError = error?.localizedDescription ?? "HTTP \(statusCode)"
             os_log("[UPLOAD] FAILED id=%{public}@ status=%{public}@ error=%{public}@", log: uploadLog, type: .error, thoughtIdShort, thought.status.rawValue, thought.lastError ?? "unknown")
             addLogEntry("UPLOAD-FAILED id=\(thoughtIdShort) status=\(thought.status.rawValue) error=\(thought.lastError ?? "unknown")", trigger: .backgroundWake)
             if thought.status == .rejected { notifyRejected(thought, code: statusCode) }
+            if error == nil && (statusCode == 401 || statusCode == 403) { notifyUnauthorized() }
         }
 
         saveContextWithErrorHandling(context, thoughtId: thoughtIdShort)
@@ -557,8 +556,7 @@ final class SyncManager: ObservableObject {
     private func receptThought(_ thought: Thought, trigger: SyncTrigger) async -> Bool {
         let thoughtIdShort = String(thought.id.uuidString.prefix(8))
 
-        guard let apiKey = Configuration.apiKey,
-              let proxySecret = Configuration.proxySecret,
+        guard let token = Configuration.captureToken,
               let baseURL = Configuration.intakerURL else {
             os_log("[HTTP] FAIL id=%{public}@ reason=not_configured | %{public}@", log: httpLog, type: .error, thoughtIdShort, processTag())
             addLogEntry("SEND-FAIL id=\(thoughtIdShort) reason=not_configured", trigger: trigger)
@@ -569,15 +567,14 @@ final class SyncManager: ObservableObject {
         os_log("[HTTP] SEND-START id=%{public}@ text='%{public}@' attempt=%d | %{public}@", log: httpLog, type: .default, thoughtIdShort, String(thought.text.prefix(20)), thought.retryCount + 1, processTag())
         addLogEntry("SEND-START id=\(thoughtIdShort) text='\(thought.text.prefix(20))' attempt=\(thought.retryCount + 1)", trigger: trigger)
 
-        // Modal proxy auth: credentials travel as headers, not a query param
+        // This device's own capture token, never a query param
         let requestURL = baseURL
         os_log("[HTTP] URL=%{public}@", log: httpLog, type: .default, requestURL.absoluteString)
 
         var request = URLRequest(url: requestURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "Modal-Key")
-        request.setValue(proxySecret, forHTTPHeaderField: "Modal-Secret")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.timeoutInterval = 30
 
         request.httpBody = try? JSONEncoder().encode(thought.uploadPayload)
@@ -592,13 +589,14 @@ final class SyncManager: ObservableObject {
                   (200...299).contains(httpResponse.statusCode) else {
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
                 // 4xx = the server definitively refused this payload; retrying can never succeed
-                thought.status = (400...499).contains(statusCode) ? .rejected : .failed
+                thought.status = .after(httpStatus: statusCode)
                 thought.retryCount += 1
                 thought.lastError = "Server error: \(statusCode)"
                 os_log("[HTTP] FAIL id=%{public}@ code=%d status=%{public}@", log: httpLog, type: .error, thoughtIdShort, statusCode, thought.status.rawValue)
                 addLogEntry("HTTP-FAIL id=\(thoughtIdShort) code=\(statusCode) status=\(thought.status.rawValue)", trigger: trigger)
                 saveContextWithErrorHandling(modelContainer?.mainContext, thoughtId: thoughtIdShort)
                 if thought.status == .rejected { notifyRejected(thought, code: statusCode) }
+                if statusCode == 401 || statusCode == 403 { notifyUnauthorized() }
                 return false
             }
 
@@ -776,22 +774,44 @@ final class SyncManager: ObservableObject {
         Task {
             await sendNotification(
                 title: "Receptor: thought rejected (HTTP \(code))",
-                body: "Not retried — check the Intaker URL and tokens in Settings. \"\(thought.text.prefix(60))\""
+                body: "Not retried. \"\(thought.text.prefix(60))\""
             )
         }
     }
 
-    // ponytail: once per process — every flush trigger would re-fire it otherwise.
+    // ponytail: once per process — every flush trigger would re-fire them otherwise.
     private var warnedNotConfigured = false
     private func notifyNotConfigured() {
         guard !warnedNotConfigured else { return }
         warnedNotConfigured = true
         Task {
             await sendNotification(
-                title: "Receptor is not configured",
-                body: "Thoughts are queued locally. Enter the Intaker URL and Modal tokens in Settings."
+                title: "Receptor is not connected",
+                body: "Thoughts are queued locally. Open an enrollment link on this device to connect."
             )
         }
+    }
+
+    private var warnedUnauthorized = false
+    private func notifyUnauthorized() {
+        guard !warnedUnauthorized else { return }
+        warnedUnauthorized = true
+        Task {
+            await sendNotification(
+                title: "Receptor's access was refused",
+                body: "Thoughts are kept and retried. Open a new enrollment link on this device."
+            )
+        }
+    }
+
+    /// An enrollment link just (re)connected this device: say so, re-arm the
+    /// warnings, and send everything that queued while it was not connected.
+    func connectionChanged() {
+        warnedNotConfigured = false
+        warnedUnauthorized = false
+        let host = Configuration.intakerURL?.host ?? "the capture service"
+        Task { await sendNotification(title: "Receptor connected", body: "Captures now go to \(host).") }
+        requestFlush(trigger: .enrollment)
     }
 
     private func sendNotification(count: Int, trigger: SyncTrigger) async {

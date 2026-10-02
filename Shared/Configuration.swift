@@ -6,10 +6,8 @@ enum Configuration {
     static let appGroupIdentifier = "group.com.alexmiller.receptor"
     static let urlScheme = "receptor"
 
-    // apiKey now holds the Modal proxy token ID (sent as the Modal-Key header);
-    // storage key unchanged so existing installs don't lose their value slot.
-    private static let apiKeyKey = "receptor_api_key"
-    private static let proxySecretKey = "receptor_proxy_secret"
+    // Modal proxy credentials older builds stored; purged at launch.
+    private static let legacyCredentialKeys = ["receptor_api_key", "receptor_proxy_secret"]
     private static let intakerURLKey = "receptor_intaker_url"
     private static let domainContextsKey = "receptor_domain_contexts"
 
@@ -46,7 +44,7 @@ enum Configuration {
     static func migrateLegacyContainerIfNeeded() {
         guard let defaults = sharedDefaults, let container = sharedContainerURL else { return }
         let standard = UserDefaults.standard
-        for key in [apiKeyKey, proxySecretKey, intakerURLKey] where defaults.string(forKey: key) == nil {
+        for key in [intakerURLKey] where defaults.string(forKey: key) == nil {
             if let legacy = standard.string(forKey: key) { defaults.set(legacy, forKey: key) }
         }
         guard let legacyDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first,
@@ -59,14 +57,35 @@ enum Configuration {
     }
     #endif
 
-    static var apiKey: String? {
-        get { sharedDefaults?.string(forKey: apiKeyKey) }
-        set { sharedDefaults?.set(newValue, forKey: apiKeyKey) }
+    /// This device's own capture token (`Authorization: Bearer`), in the Keychain.
+    static var captureToken: String? {
+        get { TokenStore().load() }
+        set {
+            if let newValue, !newValue.isEmpty { TokenStore().save(newValue) } else { TokenStore().delete() }
+        }
     }
 
-    static var proxySecret: String? {
-        get { sharedDefaults?.string(forKey: proxySecretKey) }
-        set { sharedDefaults?.set(newValue, forKey: proxySecretKey) }
+    /// Builds stop holding the operator's Modal proxy credentials: a device
+    /// authenticates only with the token its enrollment link gave it.
+    static func purgeLegacyCredentials() {
+        for defaults in [sharedDefaults, UserDefaults.standard].compactMap({ $0 }) {
+            for key in legacyCredentialKeys { defaults.removeObject(forKey: key) }
+        }
+    }
+
+    /// An enrollment link (`receptor://enroll?url=&token=`) sets both at once.
+    static func enroll(url: URL, token: String) {
+        intakerURL = url
+        captureToken = token
+    }
+
+    /// A capture token as an enrollment link may carry it: 1-512 printable,
+    /// whitespace-free characters.
+    static func validToken(_ string: String) -> String? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.count <= 512,
+              trimmed.unicodeScalars.allSatisfy({ $0.value > 0x20 && $0.value < 0x7F }) else { return nil }
+        return trimmed
     }
 
     static var intakerURL: URL? {
@@ -80,7 +99,7 @@ enum Configuration {
     }
 
     static var isConfigured: Bool {
-        apiKey != nil && proxySecret != nil && intakerURL != nil
+        intakerURL != nil && captureToken != nil
     }
 
     /// Only a complete http(s) URL with a host may be stored. Settings binds

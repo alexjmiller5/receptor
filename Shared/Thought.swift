@@ -11,6 +11,20 @@ enum ThoughtStatus: String, Codable {
     case rejected = "rejected"
 }
 
+extension ThoughtStatus {
+    /// The outcome of one HTTP reply. 401/403 refuse this DEVICE's credential,
+    /// not the thought, so it stays retryable for after re-enrollment; any other
+    /// 4xx refuses the payload itself and is never retried.
+    static func after(httpStatus code: Int) -> ThoughtStatus {
+        switch code {
+        case 200...299: .sent
+        case 401, 403: .failed
+        case 400...499: .rejected
+        default: .failed
+        }
+    }
+}
+
 enum SyncTrigger: String, Codable {
     case captureIntent = "Capture Intent"
     case flushIntent = "Flush Intent"
@@ -23,6 +37,7 @@ enum SyncTrigger: String, Codable {
     case backgroundWake = "Background Wake"
     case shareExtension = "Share Sheet"
     case deepLink = "Deep Link"
+    case enrollment = "Enrollment"
     /// A value written by a newer build. Decoding must never fail: an unknown
     /// raw value in the shared store would otherwise crash every launch.
     case unknown = "Unknown"
@@ -45,6 +60,7 @@ enum SyncTrigger: String, Codable {
         case .backgroundWake: "backgroundSession.uploadTask()"
         case .shareExtension: "ShareCapture.capture()"
         case .deepLink: "DeepLink.recept"
+        case .enrollment: "SyncManager.connectionChanged()"
         case .unknown: "?"
         }
     }

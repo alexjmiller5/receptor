@@ -23,6 +23,9 @@ final class ComposeRouter: ObservableObject {
             openCompose(source: source ?? "ios-compose-link")
         case .recept(let text, let source):
             Task { await SyncManager.shared.queueThought(text, trigger: .deepLink, source: source) }
+        case .enroll(let url, let token):
+            Configuration.enroll(url: url, token: token)
+            SyncManager.shared.connectionChanged()
         }
     }
 }
