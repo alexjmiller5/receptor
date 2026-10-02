@@ -32,6 +32,8 @@ One Xcode target builds both platforms (`SDKROOT = auto`); the two platforms shi
 
 **The old macOS rm-cp-codesign deploy one-liner is dead.** /Applications/Receptor.app comes from the cask after a tagged release; never copy a build there by hand. After pushing a tag, verify with `gh run watch <id> --exit-status` — never assume the release succeeded.
 
+**Versions:** a macOS release happens only when Alex asks for one, and only its release commit changes `MARKETING_VERSION`. iOS cable installs are not releases and never bump it. When to release and which number: the `semver` skill.
+
 The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Four targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`) and the iOS-only action extensions `ReceptorSend`, `ReceptorShare`, `ReceptorPrefilled` (embedded with `platformFilter: iOS` so the macOS build ignores them; one shared `Shared/Extension.entitlements`). `Shared/` is compiled into all three. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
 
 > **iCloud gotcha:** the repo lives under `~/Desktop` (iCloud). Never point
