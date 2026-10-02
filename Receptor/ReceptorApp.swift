@@ -25,6 +25,7 @@ struct ReceptorApp: App {
             #if os(iOS)
             Configuration.migrateLegacyContainerIfNeeded()
             #endif
+            Configuration.purgeLegacyCredentials()
             // Shared App Group container for SwiftData (extensions write to it too)
             let dbURL = Configuration.storeURL!
             os_log("[APP] ReceptorApp.init() — DB path=%{public}@", log: appLog, type: .default, dbURL.path)

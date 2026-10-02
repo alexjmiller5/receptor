@@ -35,7 +35,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         false
     }
 
-    /// receptor:// links (Hammerspoon, the agent skill). Handled here rather than
+    /// receptor:// links (Hammerspoon, the agent skill, enrollment links). Handled here rather than
     /// with .onOpenURL so neither link surfaces the main window: `compose` is
     /// the floating prompt, `recept` is silent.
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -46,6 +46,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
                 QuickCapturePanel.shared.show(source: source ?? "macos-panel")
             case .recept(let text, let source):
                 Task { await SyncManager.shared.queueThought(text, trigger: .deepLink, source: source) }
+            case .enroll(let url, let token):
+                Configuration.enroll(url: url, token: token)
+                SyncManager.shared.connectionChanged()
             }
         }
     }

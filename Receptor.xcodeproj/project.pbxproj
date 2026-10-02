@@ -18,6 +18,7 @@
 		2531BDC638031E375F9D4F5A /* ReceptorPrefilled.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1983A83485F56EB3AED3F2B5 /* ReceptorPrefilled.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		28490520477C12322FD0D18F /* ComposeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4F13BFC39521FA1CAA7180 /* ComposeRouter.swift */; };
 		288A62863003E39617FC113F /* ComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ECE5D4F5EA65957F8C5C41B /* ComposeView.swift */; };
+		2A710094EB23FE9A157C6AB8 /* ConnectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6983A1F37CD8582DCEF7A299 /* ConnectionTests.swift */; };
 		33158AA291D521E465EF3740 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89187ADDF0DF3E684D3B8814 /* LoginItemManager.swift */; };
 		34BB2AF13DE50ACA75926359 /* PrefilledRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D20DB16DA98BE9181EC783 /* PrefilledRequestHandler.swift */; };
 		3E695435484DEBA62E7E316F /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
@@ -27,13 +28,16 @@
 		51E12D66C5F2B4DA266335EA /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
 		53FC7BD703D8AFBACC38473A /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
 		5D1098140692B77BE4905AC8 /* SyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E258B98228FD8E31A8E02B15 /* SyncManager.swift */; };
+		5D7768CAD5AF319538D15E3C /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966FF18F1AABB5C487F55023 /* TokenStore.swift */; };
 		62AF30F85A1272AA10084A89 /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
 		64A78D8B46DB58EE95617B93 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
 		686560F90C31513881C13D85 /* ReceptorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4B21AB558FFE81AA0EEA3E /* ReceptorApp.swift */; };
 		6B03D6B263FF73A950EB4D4E /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
 		71053417838D50AF9DC2C2A3 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
 		733716ABD7AE4A13C26506AD /* SendRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */; };
+		7640BC9265D3A7455A8769CB /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966FF18F1AABB5C487F55023 /* TokenStore.swift */; };
 		80B56D139DF8D238C2D88287 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
+		80EB779D9887F045E0D92544 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966FF18F1AABB5C487F55023 /* TokenStore.swift */; };
 		8B0C0EC7CA43991CF015180E /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD93E76487F0E841146387 /* Configuration.swift */; };
 		8D1DF4A4CDEF8FE79B873737 /* ExtensionInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94936B9104C59E0E30E34EA /* ExtensionInput.swift */; };
 		9005532F65DF1551A9505D3E /* Thought.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23084ED47242BEF2A675DFB4 /* Thought.swift */; };
@@ -53,6 +57,7 @@
 		E5D4EBFE0DA50B5B9A15EF61 /* DebugFileLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EDBB40C7027297E326323AA /* DebugFileLog.swift */; };
 		E826EB1003943A57D119CCD2 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
 		E843A119A8814870D50B6B9F /* ReceptorSend.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0F2A6ABB6DD892E07E7D3197 /* ReceptorSend.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EF0F94F568FE3DC7880C8741 /* TokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 966FF18F1AABB5C487F55023 /* TokenStore.swift */; };
 		F1E637D3215CF118B8DF0FD2 /* ShareSheetUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24548ED967113E7C032B6E34 /* ShareSheetUITests.swift */; };
 		F296E061A6C2DFC57486B1C5 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB7F0DD9782F549B2C9A15 /* DeepLink.swift */; };
 		F2B8AA20B6232731AAD0F000 /* ShareCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E671C0CC0D00C93642B70220 /* ShareCapture.swift */; };
@@ -133,6 +138,7 @@
 		53D20DB16DA98BE9181EC783 /* PrefilledRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefilledRequestHandler.swift; sourceTree = "<group>"; };
 		5EA46E42CC45F365CE99E2B8 /* ReceptorShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ReceptorShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F129A4E09AB4CA1DC2C88D5 /* SettingsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTab.swift; sourceTree = "<group>"; };
+		6983A1F37CD8582DCEF7A299 /* ConnectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTests.swift; sourceTree = "<group>"; };
 		6F054627CEDAE9D7EED1EB0D /* ReceptorUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ReceptorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		76252BF81EEDE5B47F7EE1AF /* Receptor-macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Receptor-macOS.entitlements"; sourceTree = "<group>"; };
 		7ECE5D4F5EA65957F8C5C41B /* ComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeView.swift; sourceTree = "<group>"; };
@@ -141,6 +147,7 @@
 		8EDBB40C7027297E326323AA /* DebugFileLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugFileLog.swift; sourceTree = "<group>"; };
 		8FBAAAEA6907B4253B04C516 /* QuickCapturePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCapturePanel.swift; sourceTree = "<group>"; };
 		95CD93E76487F0E841146387 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
+		966FF18F1AABB5C487F55023 /* TokenStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenStore.swift; sourceTree = "<group>"; };
 		98013471497046BC27D613A0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9CF85D2DB19E9831DF174457 /* SendRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendRequestHandler.swift; sourceTree = "<group>"; };
 		9D4F13BFC39521FA1CAA7180 /* ComposeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRouter.swift; sourceTree = "<group>"; };
@@ -234,6 +241,7 @@
 		6E6EEB9D650E023F3E8204FA /* ReceptorTests */ = {
 			isa = PBXGroup;
 			children = (
+				6983A1F37CD8582DCEF7A299 /* ConnectionTests.swift */,
 				4B48A808DCA68C0139134CD6 /* DeepLinkTests.swift */,
 			);
 			path = ReceptorTests;
@@ -288,6 +296,7 @@
 				B94936B9104C59E0E30E34EA /* ExtensionInput.swift */,
 				E671C0CC0D00C93642B70220 /* ShareCapture.swift */,
 				23084ED47242BEF2A675DFB4 /* Thought.swift */,
+				966FF18F1AABB5C487F55023 /* TokenStore.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -537,6 +546,7 @@
 				34BB2AF13DE50ACA75926359 /* PrefilledRequestHandler.swift in Sources */,
 				F2B8AA20B6232731AAD0F000 /* ShareCapture.swift in Sources */,
 				D6F3FD954479BE4AA9E882EF /* Thought.swift in Sources */,
+				5D7768CAD5AF319538D15E3C /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,6 +554,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A710094EB23FE9A157C6AB8 /* ConnectionTests.swift in Sources */,
 				166BE8C43B770B9C654F102B /* DeepLinkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -559,6 +570,7 @@
 				8D1DF4A4CDEF8FE79B873737 /* ExtensionInput.swift in Sources */,
 				D9A8F47A4342B35C837C1DDB /* ShareCapture.swift in Sources */,
 				9005532F65DF1551A9505D3E /* Thought.swift in Sources */,
+				80EB779D9887F045E0D92544 /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -573,6 +585,7 @@
 				733716ABD7AE4A13C26506AD /* SendRequestHandler.swift in Sources */,
 				12CE3D3187C81BB2B5E4CD2A /* ShareCapture.swift in Sources */,
 				20D9BE4C30D0C63613D9A0CA /* Thought.swift in Sources */,
+				7640BC9265D3A7455A8769CB /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -600,6 +613,7 @@
 				3E695435484DEBA62E7E316F /* Thought.swift in Sources */,
 				1CB6ADBBE67C1CC43CAD1567 /* ThoughtListView.swift in Sources */,
 				B084FFFEEA6E15737B282E81 /* ThoughtsTab.swift in Sources */,
+				EF0F94F568FE3DC7880C8741 /* TokenStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -660,7 +674,7 @@
 				ENABLE_TESTABILITY = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -744,7 +758,7 @@
 				DEVELOPMENT_TEAM = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
