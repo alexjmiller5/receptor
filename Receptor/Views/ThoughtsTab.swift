@@ -52,7 +52,7 @@ struct ThoughtsTab: View {
             }
 
             Button {
-                router.showCompose = true
+                router.openCompose()
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)

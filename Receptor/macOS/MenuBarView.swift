@@ -42,8 +42,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         for url in urls {
             guard let link = DeepLink.parse(url) else { continue }
             switch link {
-            case .compose:
-                QuickCapturePanel.shared.show()
+            case .compose(let source):
+                QuickCapturePanel.shared.show(source: source ?? "macos-panel")
             case .recept(let text, let source):
                 Task { await SyncManager.shared.queueThought(text, trigger: .deepLink, source: source) }
             }

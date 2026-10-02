@@ -19,8 +19,11 @@ final class KeyablePanel: NSPanel {
 final class QuickCapturePanel {
     static let shared = QuickCapturePanel()
     private var panel: NSPanel?
+    /// The caller named in the `receptor://compose` link (e.g. the hotkey).
+    private var source = "macos-panel"
 
-    func show() {
+    func show(source: String) {
+        self.source = source
         if let panel, panel.isVisible {
             panel.makeKeyAndOrderFront(nil)
             return
@@ -58,7 +61,7 @@ final class QuickCapturePanel {
         Task {
             // .captureIntent keeps SyncManager's own "Synced N" banner quiet;
             // this banner carries the text instead, like the share-sheet actions.
-            await SyncManager.shared.queueThought(text, trigger: .captureIntent, source: Configuration.appSource)
+            await SyncManager.shared.queueThought(text, trigger: .captureIntent, source: source)
             let content = UNMutableNotificationContent()
             content.title = "Receptor 💭 ✓"
             content.body = String(text.prefix(200))

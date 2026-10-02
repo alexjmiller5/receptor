@@ -25,8 +25,14 @@ gen:
 dev: gen
     open {{app}}.xcodeproj
 
+# unit tests (ReceptorTests) on an iOS simulator
+test: gen
+    xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
+      -destination "platform=iOS Simulator,name=${IOS_SIMULATOR:-iPhone 17}" \
+      -only-testing:ReceptorTests CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES test 2>&1 | \
+      grep -E "(Test|Suite).*(passed|failed)|error:|\*\* TEST" ; exit ${PIPESTATUS[0]}
+
 # unsigned builds for both platforms — the CI-able correctness gate
-# (no `test` verb: the project has no test target yet)
 check: gen
     xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
       -destination "generic/platform=iOS Simulator" \
