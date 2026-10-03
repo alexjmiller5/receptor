@@ -73,10 +73,21 @@ enum Configuration {
         }
     }
 
-    /// An enrollment link (`receptor://enroll?url=&token=`) sets both at once.
+    /// An enrollment link (`receptor://enroll?url=&token=`) sets both at once;
+    /// it is the only way to connect - neither is ever typed in.
     static func enroll(url: URL, token: String) {
         intakerURL = url
         captureToken = token
+    }
+
+    static func disconnect() {
+        intakerURL = nil
+        captureToken = nil
+    }
+
+    /// The capture service this device is connected to, for display.
+    static var connectedHost: String? {
+        isConfigured ? intakerURL?.host : nil
     }
 
     /// A capture token as an enrollment link may carry it: 1-512 printable,
