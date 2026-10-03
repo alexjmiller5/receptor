@@ -804,9 +804,18 @@ final class SyncManager: ObservableObject {
         }
     }
 
+    /// Shown in Settings; changes only through an enrollment link or Disconnect.
+    @Published private(set) var connectedHost: String? = Configuration.connectedHost
+
+    func disconnect() {
+        Configuration.disconnect()
+        connectedHost = nil
+    }
+
     /// An enrollment link just (re)connected this device: say so, re-arm the
     /// warnings, and send everything that queued while it was not connected.
     func connectionChanged() {
+        connectedHost = Configuration.connectedHost
         warnedNotConfigured = false
         warnedUnauthorized = false
         let host = Configuration.intakerURL?.host ?? "the capture service"

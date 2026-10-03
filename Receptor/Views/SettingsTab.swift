@@ -13,8 +13,6 @@ struct ExportItem: Identifiable {
 
 struct SettingsTab: View {
     @EnvironmentObject private var syncManager: SyncManager
-    @State private var intakerURL: String = Configuration.intakerURL?.absoluteString ?? ""
-    @State private var captureToken: String = Configuration.captureToken ?? ""
     @Query private var thoughts: [Thought]
     @State private var exportItem: ExportItem?
 
@@ -45,7 +43,6 @@ struct SettingsTab: View {
                 confirmationsSection
                 shareDefaultsSection
                 connectionSection
-                requestFormatSection
                 queueStatisticsSection
                 syncLogSection
             }
@@ -91,58 +88,7 @@ struct SettingsTab: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Connection")
                         .font(.headline)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Capture URL")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        TextField("https://your-workspace--synapse-capture.modal.run", text: $intakerURL)
-                            .textFieldStyle(.plain)
-                            .font(.system(.body, design: .monospaced))
-                            .padding(8)
-                            .background(Color(nsColor: .textBackgroundColor))
-                            .cornerRadius(6)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                            )
-                            .onChange(of: intakerURL) { _, newValue in
-                                if let url = Configuration.validIntakerURL(newValue) {
-                                    Configuration.intakerURL = url
-                                }
-                            }
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Access token")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        SecureField("This device's token", text: $captureToken)
-                            .textFieldStyle(.plain)
-                            .font(.system(.body, design: .monospaced))
-                            .padding(8)
-                            .background(Color(nsColor: .textBackgroundColor))
-                            .cornerRadius(6)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                            )
-                            .onChange(of: captureToken) { _, newValue in
-                                if let token = Configuration.validToken(newValue) {
-                                    Configuration.captureToken = token
-                                }
-                            }
-                    }
-
-                    if Configuration.isConfigured {
-                        Label("Connected", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .font(.caption)
-                    } else {
-                        Label("Open an enrollment link on this Mac to connect", systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                            .font(.caption)
-                    }
+                    connectionStatus
                 }
 
                 Divider()
@@ -335,70 +281,25 @@ struct SettingsTab: View {
     #endif
 
     private var connectionSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Capture URL")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextField("https://your-workspace--synapse-capture.modal.run", text: $intakerURL)
-                    #if os(iOS)
-                    .textContentType(.URL)
-                    .keyboardType(.URL)
-                    .textInputAutocapitalization(.never)
-                    #endif
-                    .autocorrectionDisabled()
-                    .font(.system(.body, design: .monospaced))
-                    .onChange(of: intakerURL) { _, newValue in
-                        if let url = Configuration.validIntakerURL(newValue) {
-                            Configuration.intakerURL = url
-                        }
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Access token")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                SecureField("This device's token", text: $captureToken)
-                    #if os(iOS)
-                    .textContentType(.password)
-                    #endif
-                    .autocorrectionDisabled()
-                    .font(.system(.body, design: .monospaced))
-                    .onChange(of: captureToken) { _, newValue in
-                        if let token = Configuration.validToken(newValue) {
-                            Configuration.captureToken = token
-                        }
-                    }
-            }
-        } header: {
-            Text("Connection")
-        } footer: {
-            if Configuration.isConfigured {
-                Label("Connected", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.caption)
-            } else {
-                Label("Open an enrollment link on this device to connect", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-                    .font(.caption)
-            }
+        Section("Connection") {
+            connectionStatus
         }
     }
 
-    private var requestFormatSection: some View {
-        Section("Request Format") {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("POST {url}")
-                    .font(.system(.caption, design: .monospaced))
-                Text("Authorization: Bearer {access token}")
-                    .font(.system(.caption, design: .monospaced))
-                Text("Content-Type: application/json")
-                    .font(.system(.caption, design: .monospaced))
-                Text("{\"raw_text\": \"your thought\"}")
-                    .font(.system(.caption, design: .monospaced))
-            }
-            .foregroundStyle(.secondary)
+    /// Read-only: a device connects only by opening an enrollment link, which
+    /// carries both the capture URL and this device's token.
+    @ViewBuilder
+    private var connectionStatus: some View {
+        if let host = syncManager.connectedHost {
+            Label("Connected to \(host)", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+            Button("Disconnect", role: .destructive) { syncManager.disconnect() }
+        } else {
+            Label("Not connected", systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("Open the enrollment link you were sent on this device. Thoughts are kept and sent once connected.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

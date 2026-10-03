@@ -59,3 +59,15 @@ struct LegacyCredentialTests {
         #expect(defaults.string(forKey: "receptor_proxy_secret") == nil)
     }
 }
+
+struct DisconnectTests {
+    @Test func disconnectForgetsTheURLAndToken() {
+        Configuration.enroll(url: URL(string: "https://ws--synapse-capture.modal.run")!, token: "test-token")
+        #expect(Configuration.isConfigured)
+        #expect(Configuration.connectedHost == "ws--synapse-capture.modal.run")
+        Configuration.disconnect()
+        #expect(!Configuration.isConfigured)
+        #expect(Configuration.connectedHost == nil)
+        #expect(Configuration.captureToken == nil)
+    }
+}
