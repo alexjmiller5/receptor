@@ -20,30 +20,33 @@ enum ExtensionInput {
         return ""
     }
 
-    /// Send `text`, confirm, finish the request. The confirmation is a
-    /// notification banner: iOS gives any extension that shows its own view a
-    /// full-height opaque sheet, so a banner is the only feedback that does
-    /// not cover the page the user is sharing from.
+    /// Only failures need a notification. UI-bearing callers can briefly
+    /// confirm inline before the extension completes.
     @MainActor
-    static func finish(_ text: String, source: String, title: String, context: NSExtensionContext?) async {
+    static func finish(_ text: String, source: String, title: String, context: NSExtensionContext?,
+                       onCaptured: ((ShareCapture.Outcome) async -> Void)? = nil) async {
         do {
             let outcome = try await ShareCapture.capture(text: text, source: source, container: try ShareCapture.makeContainer())
-            let content = UNMutableNotificationContent()
+            let failure: String?
             switch outcome {
-            case .sent: content.title = "\(title) ✓"
-            case .queued: content.title = "\(title) - queued, sends on the next sync"
-            case .rejected(let code): content.title = "\(title) - rejected (HTTP \(code))"
+            case .sent: failure = nil
+            case .queued: failure = Configuration.isConfigured ? nil : "Not connected. Open an enrollment link in Receptor."
+            case .unauthorized: failure = "Access refused. Open a new enrollment link in Receptor."
+            case .rejected(let code): failure = "Rejected (HTTP \(code)). Not retried."
             }
-            content.body = String(text.prefix(200))
-            do {
-                try await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-                DebugFileLog.write("[SHARE] banner posted")
-            } catch {
-                DebugFileLog.write("[SHARE] banner failed: \(error.localizedDescription)")
-            }
+            if let failure { await notifyFailure(title: title, message: failure + "\n" + String(text.prefix(200))) }
+            await onCaptured?(outcome)
             context?.completeRequest(returningItems: nil)
         } catch {
+            await notifyFailure(title: title, message: error.localizedDescription)
             context?.cancelRequest(withError: error)
         }
+    }
+
+    private static func notifyFailure(title: String, message: String) async {
+        let content = UNMutableNotificationContent()
+        content.title = title + " - capture needs attention"
+        content.body = message
+        try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
     }
 }

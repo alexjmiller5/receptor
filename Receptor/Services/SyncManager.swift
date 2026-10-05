@@ -102,24 +102,29 @@ final class SyncManager: ObservableObject {
 
     /// Saves a thought to the database and fires off a queue flush.
     /// CaptureThoughtIntent calls this and returns "Queued" immediately.
-    func queueThought(_ text: String, trigger: SyncTrigger = .captureIntent, source: String? = nil) async {
+    @discardableResult
+    func queueThought(_ text: String, trigger: SyncTrigger = .captureIntent, source: String? = nil) async -> Bool {
         os_log("[SYNC] queueThought() — text='%{public}@' trigger=%{public}@ | %{public}@", log: syncLog_os, type: .default, String(text.prefix(30)), trigger.rawValue, processTag())
 
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             os_log("[SYNC] queueThought() — SKIP: empty text", log: syncLog_os, type: .error)
             addLogEntry("QUEUE-SKIP empty text", trigger: trigger)
-            return
+            return false
         }
 
         guard let container = modelContainer else {
             os_log("[SYNC] queueThought() — ABORT: modelContainer is nil", log: syncLog_os, type: .error)
-            return
+            return false
         }
 
         let context = container.mainContext
         let thought = Thought(text: text, source: source)
         context.insert(thought)
-        saveContextWithErrorHandling(context)
+        guard saveContextWithErrorHandling(context) else {
+            // A later save must not persist a capture the caller was told failed.
+            context.delete(thought)
+            return false
+        }
 
         let thoughtId = String(thought.id.uuidString.prefix(8))
         os_log("[SYNC] queueThought() — saved id=%{public}@ | %{public}@", log: syncLog_os, type: .default, thoughtId, processTag())
@@ -127,6 +132,7 @@ final class SyncManager: ObservableObject {
 
         // Fire and forget - don't await so callers return immediately
         requestFlush(trigger: trigger)
+        return true
     }
 
     /// Routes to background uploads (iOS) or direct flush (macOS).
@@ -290,26 +296,6 @@ final class SyncManager: ObservableObject {
     func handleAllBackgroundUploadsFinished() {
         os_log("[UPLOAD] handleAllBackgroundUploadsFinished() | %{public}@", log: uploadLog, type: .default, processTag())
         DebugFileLog.write("[UPLOAD] handleAllBackgroundUploadsFinished()")
-
-        // Count recently sent thoughts for notification
-        if let container = modelContainer {
-            let context = container.mainContext
-            let fiveMinutesAgo = Date().addingTimeInterval(-300)
-            let sentStatus = ThoughtStatus.sent
-            let descriptor = FetchDescriptor<Thought>(predicate: #Predicate {
-                $0.status == sentStatus && $0.sentAt != nil && $0.sentAt! > fiveMinutesAgo
-            })
-            // Thoughts captured through the Recept intent already got their
-            // own banner with the text; do not announce them twice.
-            if let recentlySent = try? context.fetch(descriptor) {
-                let others = recentlySent.filter { $0.sentVia != .captureIntent }
-                if !others.isEmpty {
-                    Task {
-                        await sendNotification(count: others.count, trigger: .backgroundWake)
-                    }
-                }
-            }
-        }
 
         // Call the OS completion handler
         backgroundSessionCompletionHandler?()
@@ -538,11 +524,6 @@ final class SyncManager: ObservableObject {
             }
         }
 
-        // One batch notification at the end (not per-thought)
-        if successCount > 0 && trigger != .captureIntent {
-            await sendNotification(count: successCount, trigger: trigger)
-        }
-
         if successCount > 0 {
             os_log("[FLUSH] COMPLETE sent=%d | %{public}@", log: flushLog, type: .default, successCount, processTag())
             addLogEntry("FLUSH-COMPLETE sent=\(successCount)", trigger: trigger)
@@ -624,13 +605,15 @@ final class SyncManager: ObservableObject {
 
     // MARK: - DB Save with Error Handling
 
-    private func saveContextWithErrorHandling(_ context: ModelContext?, thoughtId: String? = nil) {
-        guard let context else { return }
+    @discardableResult
+    private func saveContextWithErrorHandling(_ context: ModelContext?, thoughtId: String? = nil) -> Bool {
+        guard let context else { return false }
         do {
             try context.save()
             if let id = thoughtId {
                 addLogEntry("SAVE-SUCCESS id=\(id)", trigger: .appBecameActive)
             }
+            return true
         } catch {
             let idInfo = thoughtId.map { " id=\($0)" } ?? ""
             os_log("[SYNC] SAVE-FAILED%{public}@ error=%{public}@", log: syncLog_os, type: .error, idInfo, error.localizedDescription)
@@ -638,6 +621,7 @@ final class SyncManager: ObservableObject {
             Task {
                 await sendNotification(title: "Receptor - DB Error", body: "Failed to save: \(error.localizedDescription)")
             }
+            return false
         }
     }
 
@@ -818,16 +802,7 @@ final class SyncManager: ObservableObject {
         connectedHost = Configuration.connectedHost
         warnedNotConfigured = false
         warnedUnauthorized = false
-        let host = Configuration.intakerURL?.host ?? "the capture service"
-        Task { await sendNotification(title: "Receptor connected", body: "Captures now go to \(host).") }
         requestFlush(trigger: .enrollment)
-    }
-
-    private func sendNotification(count: Int, trigger: SyncTrigger) async {
-        await sendNotification(
-            title: "Receptor",
-            body: "Synced \(count) thought\(count == 1 ? "" : "s") via \(trigger.rawValue)"
-        )
     }
 
     private func sendNotification(title: String, body: String) async {

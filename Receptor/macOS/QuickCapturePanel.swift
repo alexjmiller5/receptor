@@ -1,7 +1,6 @@
 #if os(macOS)
 import AppKit
 import SwiftUI
-import UserNotifications
 
 /// A panel that takes the keyboard without activating its app, so the app the
 /// user was in stays frontmost and gets focus back when the panel closes.
@@ -13,8 +12,7 @@ final class KeyablePanel: NSPanel {
 /// `receptor://compose` on the Mac: a small floating prompt, centered, the way
 /// the old "Receptor 💭" Shortcut asked for a thought - no main window, no app
 /// activation (callers use `open -g`). Return sends (Shift+Return for a
-/// newline), Escape cancels; the panel closes itself and a banner confirms
-/// what was sent.
+/// newline), Escape cancels; a brief inline checkmark confirms local persistence, then the panel closes.
 @MainActor
 final class QuickCapturePanel {
     static let shared = QuickCapturePanel()
@@ -29,7 +27,7 @@ final class QuickCapturePanel {
             return
         }
         let host = NSHostingController(rootView: QuickCaptureView(
-            onSend: { [weak self] text in self?.send(text) },
+            onSend: { [weak self] text in await self?.send(text) ?? false },
             onCancel: { [weak self] in self?.close() }
         ))
         // .nonactivatingPanel only takes effect when set at init.
@@ -56,17 +54,8 @@ final class QuickCapturePanel {
         panel.makeKeyAndOrderFront(nil)
     }
 
-    private func send(_ text: String) {
-        close()
-        Task {
-            // .captureIntent keeps SyncManager's own "Synced N" banner quiet;
-            // this banner carries the text instead, like the share-sheet actions.
-            await SyncManager.shared.queueThought(text, trigger: .captureIntent, source: source)
-            let content = UNMutableNotificationContent()
-            content.title = "Receptor 💭 ✓"
-            content.body = String(text.prefix(200))
-            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-        }
+    private func send(_ text: String) async -> Bool {
+        await SyncManager.shared.queueThought(text, trigger: .captureIntent, source: source)
     }
 
     private func close() {
@@ -76,40 +65,55 @@ final class QuickCapturePanel {
 }
 
 struct QuickCaptureView: View {
-    let onSend: (String) -> Void
+    let onSend: (String) async -> Bool
     let onCancel: () -> Void
     @State private var text = ""
+    @State private var submitting = false
+    @State private var feedback: String?
+    @State private var saved = false
     @FocusState private var focused: Bool
 
     private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Enter your thought 💭")
+            Text(feedback ?? "Enter your thought 💭")
                 .font(.title3.weight(.semibold))
-            TextEditor(text: $text)
-                .font(.body)
-                .focused($focused)
-                .scrollContentBackground(.hidden)
-                .padding(8)
-                .frame(minHeight: 72)
-                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(nsColor: .separatorColor)))
-                .onKeyPress(.return, phases: .down) { press in
-                    if press.modifiers.contains(.shift) { return .ignored }
-                    if !trimmed.isEmpty { onSend(trimmed) }
-                    return .handled
+            if saved {
+                VStack(spacing: 8) {
+                    Label("Queued in Receptor", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
-                .onKeyPress(.escape) { onCancel(); return .handled }
+                .frame(maxWidth: .infinity, minHeight: 72)
+            } else {
+                TextEditor(text: $text)
+                    .font(.body)
+                    .focused($focused)
+                    .scrollContentBackground(.hidden)
+                    .padding(8)
+                    .frame(minHeight: 72)
+                    .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(nsColor: .separatorColor)))
+                    .onKeyPress(.return, phases: .down) { press in
+                        if press.modifiers.contains(.shift) { return .ignored }
+                        if !trimmed.isEmpty { submit() }
+                        return .handled
+                    }
+                    .onKeyPress(.escape) { onCancel(); return .handled }
+            }
             HStack {
                 Text("Return sends · Shift+Return for a new line")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
-                Button("Done") { onSend(trimmed) }
+                Button("Done") { submit() }
                     .keyboardShortcut(.defaultAction)
-                    .disabled(trimmed.isEmpty)
+                    .disabled(trimmed.isEmpty || submitting)
             }
         }
         // The panel has a hidden, full-size title bar: without ignoring its
@@ -121,6 +125,24 @@ struct QuickCaptureView: View {
         .frame(width: 460)
         .ignoresSafeArea()
         .onAppear { focused = true }
+        .disabled(submitting)
     }
+    private func submit() {
+        guard !submitting else { return }
+        submitting = true
+        Task { @MainActor in
+            saved = await onSend(trimmed)
+            if saved {
+                focused = false
+                feedback = "Saved"
+                try? await Task.sleep(for: .milliseconds(600))
+                onCancel()
+            } else {
+                feedback = "Could not save. Try again."
+                submitting = false
+            }
+        }
+    }
+
 }
 #endif

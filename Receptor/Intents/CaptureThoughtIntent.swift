@@ -1,16 +1,18 @@
 import AppIntents
-import SwiftData
 import Foundation
+
+#if !RECEPTOR_WIDGET
+import SwiftData
 import os.log
-import UserNotifications
 
 private let intentLog = OSLog(subsystem: "com.alexmiller.receptor", category: "Intent")
+#endif
 
 /// App Intent that allows Shortcuts to recept thoughts through Receptor
 /// This is the "fire and forget" intent - saves instantly and returns
 struct CaptureThoughtIntent: AppIntent {
-    static var title: LocalizedStringResource = "Recept"
-    static var description = IntentDescription("Recept a thought to the processor")
+    static let title: LocalizedStringResource = "Recept"
+    static let description = IntentDescription("Recept a thought to the processor")
 
     // No value given (Shortcuts widget, Control Center "Shortcut" control, Siri,
     // Spotlight) -> iOS asks in a system sheet with a multi-line field, no app
@@ -33,8 +35,19 @@ struct CaptureThoughtIntent: AppIntent {
         }
     }
 
+    #if RECEPTOR_WIDGET
+    private static func rejectExtensionExecution() throws -> String {
+        throw CaptureExecutionError.requiresContainingApp
+    }
+    #endif
+
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
+        #if RECEPTOR_WIDGET
+        // LiveActivityIntent routes execution to the containing app. Never
+        // silently report a capture if the system invokes the extension.
+        return .result(value: try Self.rejectExtensionExecution())
+        #else
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
         os_log("[INTENT] CaptureThoughtIntent.perform() — ENTRY pid=%d proc=%{public}@ text='%{public}@'", log: intentLog, type: .default, pid, proc, String(text.prefix(30)))
@@ -55,7 +68,9 @@ struct CaptureThoughtIntent: AppIntent {
         }
 
         // 1. Instant Persistence - save to shared database
-        await SyncManager.shared.queueThought(text, source: source ?? "app-shortcut")
+        guard await SyncManager.shared.queueThought(text, source: source ?? "app-shortcut") else {
+            throw CaptureSaveError.failed
+        }
 
         // The queueThought method already triggers background upload
         // We return immediately - the background session handles the rest
@@ -65,19 +80,31 @@ struct CaptureThoughtIntent: AppIntent {
         let result = Configuration.isConfigured
             ? "Queued"
             : "Queued locally — Receptor is not configured (open Settings)"
-        if Configuration.isConfigured {
-            // The Shortcut showed a checkmark when it finished; this is the
-            // same beat, with the text. Not configured has its own warning.
-            let content = UNMutableNotificationContent()
-            content.title = "Receptor 💭 ✓"
-            content.body = String(text.prefix(200))
-            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-        }
         os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
         return .result(value: result)
+        #endif
     }
 }
 
+private enum CaptureSaveError: Error, CustomLocalizedStringResourceConvertible {
+    case failed
+    var localizedStringResource: LocalizedStringResource {
+        "The thought could not be saved. Please try again in Receptor."
+    }
+}
+
+#if os(iOS)
+// Persistence and the background URLSession must run in Receptor, not WidgetKit.
+extension CaptureThoughtIntent: LiveActivityIntent {}
+#endif
+
+#if RECEPTOR_WIDGET
+private enum CaptureExecutionError: Error {
+    case requiresContainingApp
+}
+#endif
+
+#if !RECEPTOR_WIDGET
 /// Shortcuts that appear in the Shortcuts app
 struct ReceptorShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
@@ -103,3 +130,5 @@ struct ReceptorShortcuts: AppShortcutsProvider {
         )
     }
 }
+
+#endif

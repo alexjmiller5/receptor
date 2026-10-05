@@ -14,7 +14,7 @@ the backend and logged with it.
 
 ## Install
 
-**macOS** — Homebrew cask from
+**macOS** - Homebrew cask from
 [alexjmiller5/homebrew-tap](https://github.com/alexjmiller5/homebrew-tap),
 consumed declaratively via nix-config:
 
@@ -25,13 +25,30 @@ homebrew.casks = [ "receptor" ];
 
 (Or imperatively elsewhere: `brew install --cask alexjmiller5/tap/receptor`.)
 
-**iOS** — no App Store / TestFlight; installed over cable with Ad Hoc signing:
+**iOS** - Ad Hoc installation for registered devices. Run the manual
+`release-ios` GitHub Actions workflow with a temporary age public key, download
+and decrypt its encrypted IPA, then install through the Mac paired to the phone.
+When local-network installation is unavailable, choose either a cable or a
+Tailscale link (`just ota` serves `build/Receptor.ipa`). Signing happens in CI;
+the installer does not need the signing certificate.
 
-```bash
-just signing-setup   # pull cert + profile from 1Password (desktop-authed op)
-just deploy          # STABLE build + install to the connected iPhone
-just signing-cleanup # evict the keychain cache again
-```
+Successful captures stay quiet. The Mac prompt briefly confirms that the thought
+was queued; the context share sheet confirms its upload outcome inline. Only
+failed captures produce notifications.
+
+## Native thought control (iOS 18+)
+
+Install a build containing `ReceptorWidgets`, then choose **Receptor > Capture
+Thought** in the Lock Screen or Control Center controls gallery. It reuses the
+Recept intent and labels captures `native-control`. Existing App Shortcuts and
+share-sheet actions remain available.
+
+The widget extension requires its own `com.alexmiller.receptor.widgets` App ID
+and **Receptor Widgets Ad Hoc** provisioning profile. Store that profile in the
+signing profile item's `widgets_mobileprovision_base64` field before a signed
+build or CI dispatch. The extension has no App Group or data-store access;
+capture runs in the containing app. No macOS release tag is needed for this
+iOS-only control.
 
 ## Develop
 
