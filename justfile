@@ -11,7 +11,7 @@ app := "Receptor"
 device_id := env_var_or_default("IOS_DEVICE_ID", "00008140-000839E42111801C")
 team_id := "467A4PRB8F"
 # Ad Hoc profile NAMES are per target in project.yml (Release config); this is
-# the 1Password item holding all five .mobileprovision files (Apple Signing vault).
+# the 1Password item holding all four .mobileprovision files (Apple Signing vault).
 profiles_item := env_var_or_default("IOS_PROFILES_ITEM", "op://xxbixvqoaicfykrbte6oh57ahq/7qslvdkwugfvktwni4dmoigclq")
 
 default:
@@ -102,13 +102,13 @@ signing-setup:
     rm "$tmp/dist.p12"
     mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" \
              "$HOME/Library/MobileDevice/Provisioning Profiles"
-    for field in app_mobileprovision_base64 share_mobileprovision_base64 send_mobileprovision_base64 prefilled_mobileprovision_base64 widgets_mobileprovision_base64; do
+    for field in app_mobileprovision_base64 share_mobileprovision_base64 send_mobileprovision_base64 prefilled_mobileprovision_base64; do
       op read "{{profiles_item}}/$field" | base64 -d > "$tmp/profile.mobileprovision"
       uuid=$(security cms -D -i "$tmp/profile.mobileprovision" | plutil -extract UUID raw -o - -)
       cp "$tmp/profile.mobileprovision" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$uuid.mobileprovision"
       cp "$tmp/profile.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.mobileprovision"
     done
-    echo "✅ Distribution cert + 5 Ad Hoc profiles installed"
+    echo "✅ Distribution cert + 4 Ad Hoc profiles installed"
 
 # Evict the keychain/profile cache again (1P keeps the durable copies).
 signing-cleanup:

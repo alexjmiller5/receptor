@@ -8,8 +8,8 @@ Store Connect API and print them base64-encoded, one JSON object.
 
 Assigning the group itself to each App ID is a developer-portal-only step
 (neither Xcode nor the API can do it): after the first run, configure App
-Groups on the app and action-extension bundle IDs in the portal, then run again so the
-profiles pick the entitlement up. The widget has no App Group. Profiles are immutable; every run replaces
+Groups on every listed bundle ID in the portal, then run again so the
+profiles pick the entitlement up. Profiles are immutable; every run replaces
 them. `--register-only` stops after the bundle IDs.
 
 Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (PEM), ASC_TEAM_DEVICE_UDIDS (comma
@@ -31,7 +31,6 @@ PROFILES = {
     "share": ("com.alexmiller.receptor.share", "Receptor Share Ad Hoc"),
     "send": ("com.alexmiller.receptor.send", "Receptor Send Ad Hoc"),
     "prefilled": ("com.alexmiller.receptor.prefilled", "Receptor Prefilled Ad Hoc"),
-    "widgets": ("com.alexmiller.receptor.widgets", "Receptor Widgets Ad Hoc"),
 }
 
 
@@ -65,7 +64,7 @@ def main() -> int:
             bid = r.json()["data"]
             print(f"registered {identifier}", file=sys.stderr)
         caps = client.get(f"/bundleIds/{bid['id']}/bundleIdCapabilities").json().get("data", [])
-        if identifier != "com.alexmiller.receptor.widgets" and not any(c["attributes"]["capabilityType"] == "APP_GROUPS" for c in caps):
+        if not any(c["attributes"]["capabilityType"] == "APP_GROUPS" for c in caps):
             r = client.post("/bundleIdCapabilities", json={"data": {"type": "bundleIdCapabilities",
                 "attributes": {"capabilityType": "APP_GROUPS"},
                 "relationships": {"bundleId": {"data": {"type": "bundleIds", "id": bid["id"]}}}}})

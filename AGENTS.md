@@ -11,7 +11,6 @@ Every capture surface is native - there are no Shortcuts in the loop:
 | Surface | Target | Mechanism |
 |---|---|---|
 | App Shortcut, Action Button, Siri, Spotlight | Receptor | the `Recept` App Shortcut (`CaptureThoughtIntent`): run without a thought, iOS asks in its own sheet ("Enter your thought 💭", multi-line) and the app never opens. The user adds it through the system Shortcuts widget / "Shortcut" control |
-| Native Lock Screen / Control Center control | ReceptorWidgets | `CaptureThoughtControl` invokes the shared `CaptureThoughtIntent` with source `native-control`; `LiveActivityIntent` routes execution into Receptor. The extension compiles only the intent declaration and a throwing fallback, never the persistence or sync services. |
 | Share sheet, actions list: "Receptor 📥" | ReceptorSend | action extension, no screen: sends the link/text as-is |
 | Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with a sheet asking "Enter your context", sends `input $ context` |
 | Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | action extension, no screen: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else the catch-all, else as-is |
@@ -39,7 +38,7 @@ One Xcode target builds both platforms (`SDKROOT = auto`); the two platforms shi
 
 **Versions:** a macOS release happens only when Alex asks for one, and only its release commit changes `MARKETING_VERSION`. iOS cable installs are not releases and never bump it. When to release and which number: the `semver` skill.
 
-The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Five product targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`) and the iOS-only action extensions `ReceptorSend`, `ReceptorShare`, `ReceptorPrefilled` (embedded with `platformFilter: iOS` so the macOS build ignores them; one shared `Shared/Extension.entitlements`). `ReceptorWidgets` is an iOS-only WidgetKit extension embedded with `platformFilter: iOS`; its separate `Receptor Widgets Ad Hoc` profile is required for device installation. It needs no App Group entitlement. `Shared/` is compiled into all three action extensions. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
+The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Four product targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`) and the iOS-only action extensions `ReceptorSend`, `ReceptorShare`, `ReceptorPrefilled` (embedded with `platformFilter: iOS` so the macOS build ignores them; one shared `Shared/Extension.entitlements`). `Shared/` is compiled into all three action extensions. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
 
 > **iCloud gotcha:** the repo lives under `~/Desktop` (iCloud). Never point
 > `-derivedDataPath` inside the repo for a signed build - iCloud stamps
@@ -59,7 +58,7 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build into `build/Receptor.ipa` + install over the local network; phone unreachable = ask the owner: `just ota` or cable |
 | `just ota` | Serve `build/Receptor.ipa` as an install page on this machine's tailnet name (one tap on the phone, any network; blocks while serving) |
-| `just signing-setup` | Pull the Apple Distribution cert + the five Ad Hoc profiles from 1Password into the keychain / profile dirs |
+| `just signing-setup` | Pull the Apple Distribution cert + the four Ad Hoc profiles from 1Password into the keychain / profile dirs |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
 | `just mac-dev-run` | Local macOS testing from `build/`, no /Applications install |
@@ -129,7 +128,6 @@ Free-form, never parsed by the app; each surface stamps its own label:
 | `receptor://compose?source=<label>` (iOS sheet / Mac `QuickCapturePanel`) | the link's `source`, else `ios-compose-link` / `macos-panel` |
 | `receptor://recept?text=&source=<label>` | the link's `source` (Hammerspoon: `hammerspoon-hyper-r`, `hammerspoon-hyper-q`, `hammerspoon-chrome-url`; agents: `agent`) |
 | Share sheet actions | `share-send` / `share-context` / `share-prefilled` |
-| Native thought control | `native-control` (iOS does not distinguish Lock Screen from Control Center) |
 | `Recept` App Shortcut | its optional Source parameter, else `app-shortcut` (iOS does not tell an intent whether the Lock Screen, Control Center, Action Button, Siri or Spotlight ran it) |
 
 ## Capture feedback
@@ -165,7 +163,7 @@ Settings explains these failure alerts and warns when banners are unavailable.
 
 ```
 project.yml                    # XcodeGen spec (targets, Info.plist keys, profile names)
-Shared/                        # compiled into the app AND both extensions
+Shared/                        # compiled into the app AND all three action extensions
 ├── Thought.swift              # SwiftData model + ThoughtStatus/SyncTrigger, uploadPayload
 ├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
 ├── DeepLink.swift             # receptor://compose?source=, receptor://recept and receptor://enroll parsing

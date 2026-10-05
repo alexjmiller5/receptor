@@ -36,19 +36,11 @@ Successful captures stay quiet. The Mac prompt briefly confirms that the thought
 was queued; the context share sheet confirms its upload outcome inline. Only
 failed captures produce notifications.
 
-## Native thought control (iOS 18+)
+## Lock Screen and Control Center
 
-Install a build containing `ReceptorWidgets`, then choose **Receptor > Capture
-Thought** in the Lock Screen or Control Center controls gallery. It reuses the
-Recept intent and labels captures `native-control`. Existing App Shortcuts and
-share-sheet actions remain available.
-
-The widget extension requires its own `com.alexmiller.receptor.widgets` App ID
-and **Receptor Widgets Ad Hoc** provisioning profile. Store that profile in the
-signing profile item's `widgets_mobileprovision_base64` field before a signed
-build or CI dispatch. The extension has no App Group or data-store access;
-capture runs in the containing app. No macOS release tag is needed for this
-iOS-only control.
+Use the system Shortcuts widget or Shortcut control and select Receptor's
+bundled **Recept** App Shortcut. Leave its thought parameter empty so iOS asks
+for the thought in its own prompt.
 
 ## Develop
 

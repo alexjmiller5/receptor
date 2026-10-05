@@ -33,7 +33,7 @@ printf '%s' "$IOS_CERTIFICATE_P12_BASE64" | base64 -d > "$scratch/cert.p12"
 security import "$scratch/cert.p12" -k "$keychain" -P "$IOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
 security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
 security list-keychains -d user -s "$keychain"
-for profile in IOS_APP_PROFILE IOS_SHARE_PROFILE IOS_SEND_PROFILE IOS_PREFILLED_PROFILE IOS_WIDGETS_PROFILE; do
+for profile in IOS_APP_PROFILE IOS_SHARE_PROFILE IOS_SEND_PROFILE IOS_PREFILLED_PROFILE; do
   printf '%s' "${!profile}" | base64 -d > "$scratch/profile"
   security cms -D -i "$scratch/profile" > "$scratch/profile.plist"
   uuid=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$scratch/profile.plist")
