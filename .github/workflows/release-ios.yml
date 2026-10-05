@@ -27,7 +27,6 @@ jobs:
           IOS_APP_PROFILE: op://Apple Signing/Receptor Ad Hoc Profiles/app_mobileprovision_base64
           IOS_SHARE_PROFILE: op://Apple Signing/Receptor Ad Hoc Profiles/share_mobileprovision_base64
           IOS_SEND_PROFILE: op://Apple Signing/Receptor Ad Hoc Profiles/send_mobileprovision_base64
-          IOS_WIDGETS_PROFILE: op://Apple Signing/Receptor Ad Hoc Profiles/widgets_mobileprovision_base64
           IOS_PREFILLED_PROFILE: op://Apple Signing/Receptor Ad Hoc Profiles/prefilled_mobileprovision_base64
       - run: brew install age
       - name: Sign and encrypt

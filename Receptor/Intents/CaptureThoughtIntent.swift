@@ -1,12 +1,10 @@
 import AppIntents
 import Foundation
 
-#if !RECEPTOR_WIDGET
 import SwiftData
 import os.log
 
 private let intentLog = OSLog(subsystem: "com.alexmiller.receptor", category: "Intent")
-#endif
 
 /// App Intent that allows Shortcuts to recept thoughts through Receptor
 /// This is the "fire and forget" intent - saves instantly and returns
@@ -35,19 +33,8 @@ struct CaptureThoughtIntent: AppIntent {
         }
     }
 
-    #if RECEPTOR_WIDGET
-    private static func rejectExtensionExecution() throws -> String {
-        throw CaptureExecutionError.requiresContainingApp
-    }
-    #endif
-
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        #if RECEPTOR_WIDGET
-        // LiveActivityIntent routes execution to the containing app. Never
-        // silently report a capture if the system invokes the extension.
-        return .result(value: try Self.rejectExtensionExecution())
-        #else
         let pid = ProcessInfo.processInfo.processIdentifier
         let proc = ProcessInfo.processInfo.processName
         os_log("[INTENT] CaptureThoughtIntent.perform() — ENTRY pid=%d proc=%{public}@ text='%{public}@'", log: intentLog, type: .default, pid, proc, String(text.prefix(30)))
@@ -82,7 +69,6 @@ struct CaptureThoughtIntent: AppIntent {
             : "Queued locally — Receptor is not configured (open Settings)"
         os_log("[INTENT] CaptureThoughtIntent.perform() — EXIT returning '%{public}@'", log: intentLog, type: .default, result)
         return .result(value: result)
-        #endif
     }
 }
 
@@ -93,18 +79,6 @@ private enum CaptureSaveError: Error, CustomLocalizedStringResourceConvertible {
     }
 }
 
-#if os(iOS)
-// Persistence and the background URLSession must run in Receptor, not WidgetKit.
-extension CaptureThoughtIntent: LiveActivityIntent {}
-#endif
-
-#if RECEPTOR_WIDGET
-private enum CaptureExecutionError: Error {
-    case requiresContainingApp
-}
-#endif
-
-#if !RECEPTOR_WIDGET
 /// Shortcuts that appear in the Shortcuts app
 struct ReceptorShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
@@ -130,5 +104,3 @@ struct ReceptorShortcuts: AppShortcutsProvider {
         )
     }
 }
-
-#endif
