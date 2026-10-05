@@ -2,8 +2,7 @@ name: release-macos
 
 # macOS releasing = pushing a tag vX.Y.Z. This workflow builds, Developer-ID-
 # signs (preserving the app-group entitlement), notarizes, staples, publishes
-# a GH release, and bumps the Homebrew cask. iOS has NO CI deploy — it ships
-# locally via the justfile (see AGENTS.md).
+# a GH release, and bumps the Homebrew cask. iOS uses manual release-ios.
 on:
   push:
     tags: ["v*"]

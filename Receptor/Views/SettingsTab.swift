@@ -211,16 +211,16 @@ struct SettingsTab: View {
     @State private var catchAllContext = Configuration.domainContexts[Configuration.catchAllDomain] ?? ""
     @State private var bannersEnabled = true
 
-    /// Every capture outside the app confirms with a notification banner;
+    /// Notifications are reserved for capture failures;
     /// say so plainly when iOS will not show one.
     @ViewBuilder
     private var confirmationsSection: some View {
         Section {
             if bannersEnabled {
-                Label("Banners confirm each capture", systemImage: "checkmark.circle.fill")
+                Label("Notifications are only used for failed captures", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
             } else {
-                Label("Notifications are off, so captures cannot confirm", systemImage: "bell.slash.fill")
+                Label("Notifications are off; capture failures may go unnoticed", systemImage: "bell.slash.fill")
                     .foregroundStyle(.orange)
                 Button("Open Notification Settings") {
                     if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
@@ -229,7 +229,7 @@ struct SettingsTab: View {
                 }
             }
         } header: {
-            Text("Confirmations")
+            Text("Failure alerts")
         }
         .task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()

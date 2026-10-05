@@ -1,7 +1,7 @@
 import Foundation
 
 /// "Receptor 📥": sends the shared link or text as-is. No screen of its own;
-/// a banner confirms.
+/// completion dismisses the share sheet.
 final class SendRequestHandler: NSObject, NSExtensionRequestHandling {
     func beginRequest(with context: NSExtensionContext) {
         Task { @MainActor in

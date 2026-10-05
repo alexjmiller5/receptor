@@ -9,6 +9,7 @@ enum ShareCapture {
     enum Outcome {
         case sent
         case queued
+        case unauthorized
         case rejected(Int)
     }
 
@@ -55,7 +56,7 @@ enum ShareCapture {
                     thought.lastError = "HTTP \(http.statusCode)"
                     outcome = .rejected(http.statusCode)
                 default:
-                    break  // 5xx or a refused credential: stays queued for the app's flush
+                    if http.statusCode == 401 || http.statusCode == 403 { outcome = .unauthorized }
                 }
             }
         }

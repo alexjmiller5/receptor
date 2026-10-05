@@ -29,6 +29,8 @@ final class ShareSheetUITests: XCTestCase {
         app.launch()
         let allow = springboard.buttons["Allow"].firstMatch
         if allow.waitForExistence(timeout: 5) { allow.tap() }
+        app.open(URL(string: "receptor://enroll?url=http%3A%2F%2F127.0.0.1%3A8799%2F&token=sim-token")!)
+        sleep(2)
         snap("00-app")
     }
 
@@ -40,6 +42,7 @@ final class ShareSheetUITests: XCTestCase {
         app.tabBars.buttons["Settings"].firstMatch.tap()
         sleep(1)
         snap("10-settings")
+        XCTAssertTrue(app.staticTexts["Notifications are only used for failed captures"].exists)
     }
 
     func testShareAction() {
@@ -82,14 +85,17 @@ final class ShareSheetUITests: XCTestCase {
         target.tap()
         // An action with its own screen (the context prompt): fill it in.
         let field = safari.textFields["Context"].firstMatch
-        if field.waitForExistence(timeout: 3) {
+        if action == "Receptor 📤 💭" {
+            dump("04-context-tree", safari)
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
             snap("04-context-prompt")
             field.tap()
             field.typeText("from the ui test")
             snap("04-context-typed")
             safari.buttons["Done"].firstMatch.tap()
         }
-        // The banner is caught by the host-side frame capture; leave it time.
+        // Successful captures must not post a system banner.
+        XCTAssertFalse(springboard.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "✓")).firstMatch.waitForExistence(timeout: 3))
         sleep(6)
         snap("05-settled")
     }

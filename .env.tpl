@@ -10,9 +10,14 @@ ASC_KEY_ID=op://Apple Signing/App Store Connect API Key/key_id
 ASC_ISSUER_ID=op://Apple Signing/App Store Connect API Key/issuer_id
 TAP_PUSH_TOKEN=op://Apple Signing/Homebrew Tap Push Token/token
 
-# Project-vault ref: Receptor has no build-time env vars — the Synapse API
-# key/secret/intaker URL are entered in the app's Settings screen at runtime.
-# This placeholder exists so op-project-bootstrap derives the "Receptor"
-# project vault (and creates the "Receptor ENV" item) from it; replace
-# PLACEHOLDER with real fields if the project ever grows real env vars.
+# iOS Ad Hoc signing uses the same approved Apple Signing vault.
+IOS_CERTIFICATE_P12_BASE64=op://Apple Signing/Apple Distribution Cert/p12_base64
+IOS_CERTIFICATE_PASSWORD=op://Apple Signing/Apple Distribution Cert/password
+IOS_APP_PROFILE=op://Apple Signing/Receptor Ad Hoc Profiles/app_mobileprovision_base64
+IOS_SHARE_PROFILE=op://Apple Signing/Receptor Ad Hoc Profiles/share_mobileprovision_base64
+IOS_SEND_PROFILE=op://Apple Signing/Receptor Ad Hoc Profiles/send_mobileprovision_base64
+IOS_PREFILLED_PROFILE=op://Apple Signing/Receptor Ad Hoc Profiles/prefilled_mobileprovision_base64
+IOS_WIDGETS_PROFILE=op://Apple Signing/Receptor Ad Hoc Profiles/widgets_mobileprovision_base64
+
+# Bootstrap ownership marker; runtime credentials belong to enrolled devices.
 PLACEHOLDER=op://Receptor/Receptor ENV/PLACEHOLDER

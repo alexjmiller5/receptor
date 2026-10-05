@@ -2,7 +2,7 @@ import UIKit
 import SwiftUI
 
 /// "Receptor 📤 💭": asks for a context, then sends `input $ context`; an
-/// empty context sends the input alone. A banner confirms.
+/// empty context sends the input alone. Feedback stays inside this sheet.
 final class ContextViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -15,10 +15,8 @@ final class ContextViewController: UIViewController {
             }
             let host = UIHostingController(rootView: ContextPrompt(
                 shared: text,
-                onDone: { [weak self] context in
-                    Task { @MainActor in
-                        await ExtensionInput.finish(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext)
-                    }
+                onDone: { [weak self] context, confirm in
+                    await ExtensionInput.finish(context.isEmpty ? text : "\(text) $ \(context)", source: "share-context", title: "Receptor 📤 💭", context: self?.extensionContext, onCaptured: confirm)
                 },
                 onCancel: { [weak self] in
                     self?.extensionContext?.cancelRequest(withError: CocoaError(.userCancelled))
@@ -38,14 +36,22 @@ final class ContextViewController: UIViewController {
 /// what is being shared below, keyboard up.
 struct ContextPrompt: View {
     let shared: String
-    let onDone: (String) -> Void
+    let onDone: (String, @escaping (ShareCapture.Outcome) async -> Void) async -> Void
     let onCancel: () -> Void
     @State private var context = ""
+    @State private var submitting = false
+    @State private var feedback: String?
+    @State private var sent = false
     @FocusState private var focused: Bool
 
     var body: some View {
         NavigationStack {
             Form {
+                if let feedback {
+                    Label(feedback, systemImage: sent ? "checkmark.circle.fill" : "clock")
+                        .foregroundStyle(sent ? Color.green : Color.secondary)
+                        .accessibilityIdentifier("capture-feedback")
+                }
                 Section("Enter your context") {
                     TextField("Context", text: $context, axis: .vertical)
                         .lineLimit(2...6)
@@ -63,11 +69,27 @@ struct ContextPrompt: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: onCancel) }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { onDone(context.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                    Button("Done") {
+                        guard !submitting else { return }
+                        submitting = true
+                        focused = false
+                        Task { @MainActor in
+                            await onDone(context.trimmingCharacters(in: .whitespacesAndNewlines)) { outcome in
+                                switch outcome {
+                                case .sent: sent = true; feedback = "Sent to Receptor"
+                                case .queued: feedback = "Queued for the next sync"
+                                case .unauthorized: feedback = "Queued - reconnect in Receptor"
+                                case .rejected: feedback = "Rejected - check Receptor"
+                                }
+                                try? await Task.sleep(for: .milliseconds(600))
+                            }
+                        }
+                    }
                         .fontWeight(.semibold)
                 }
             }
         }
+        .disabled(submitting)
         .onAppear { focused = true }
     }
 }

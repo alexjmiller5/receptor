@@ -28,6 +28,8 @@ targets:
     supportedDestinations: [iOS, macOS]
     sources: [Receptor, Shared]
     dependencies:
+      - target: ReceptorWidgets
+        platformFilter: iOS
       - target: ReceptorShare
         platformFilter: iOS
       - target: ReceptorSend
@@ -164,6 +166,31 @@ targets:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsWebURLWithMaxCount: 1
               NSExtensionActivationSupportsText: true
+  ReceptorWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - ReceptorWidgets
+      - Receptor/Intents/CaptureThoughtIntent.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alexmiller.receptor.widgets
+        PRODUCT_NAME: ReceptorWidgets
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: iphoneos iphonesimulator
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) RECEPTOR_WIDGET"
+      configs:
+        Release:
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Receptor Widgets Ad Hoc
+    info:
+      path: ReceptorWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Receptor
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
   # Unit tests for the pure Shared/ logic (deep links, configuration).
   ReceptorTests:
     type: bundle.unit-test

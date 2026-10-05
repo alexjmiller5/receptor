@@ -10,13 +10,18 @@ Every capture surface is native - there are no Shortcuts in the loop:
 
 | Surface | Target | Mechanism |
 |---|---|---|
-| Lock Screen widget, Control Center, Action Button, Siri, Spotlight | Receptor | the `Recept` App Shortcut (`CaptureThoughtIntent`): run without a thought, iOS asks in its own sheet ("Enter your thought 💭", multi-line) and the app never opens. The user adds it through the system Shortcuts widget / "Shortcut" control - the app ships no widget of its own |
+| App Shortcut, Action Button, Siri, Spotlight | Receptor | the `Recept` App Shortcut (`CaptureThoughtIntent`): run without a thought, iOS asks in its own sheet ("Enter your thought 💭", multi-line) and the app never opens. The user adds it through the system Shortcuts widget / "Shortcut" control |
+| Native Lock Screen / Control Center control | ReceptorWidgets | `CaptureThoughtControl` invokes the shared `CaptureThoughtIntent` with source `native-control`; `LiveActivityIntent` routes execution into Receptor. The extension compiles only the intent declaration and a throwing fallback, never the persistence or sync services. |
 | Share sheet, actions list: "Receptor 📥" | ReceptorSend | action extension, no screen: sends the link/text as-is |
 | Share sheet: "Receptor 📤 💭" | ReceptorShare | action extension with a sheet asking "Enter your context", sends `input $ context` |
 | Share sheet: "Pre-filled Receptor 📤" | ReceptorPrefilled | action extension, no screen: appends the context configured for the link's host in Settings (`Configuration.domainContexts`), else the catch-all, else as-is |
-| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating non-activating prompt, Return sends, banner confirms) - callers use `open -g` so the app is never activated and the main window never opens for a capture |
+| Mac hotkeys / agents | Receptor (macOS) | `receptor://recept?text=&source=` handled in `MacAppDelegate.application(_:open:)`, silent; `receptor://compose` shows `QuickCapturePanel` (floating non-activating prompt, Return saves, inline checkmark confirms) - callers use `open -g` so the app is never activated and the main window never opens for a capture |
 
-The two one-tap actions are `NSExtensionRequestHandling` handlers with no screen; the context action is a view controller. All three end in `ExtensionInput.finish`: one `ShareCapture`, a notification banner with the outcome and the text, `completeRequest`. **Why a banner:** iOS puts any extension that shows its own view into a full-height opaque sheet (a clear background does not show the host through), so a custom pill or HUD always sits on a blank card covering the page. The banner is the only confirmation that leaves the page visible. It needs the app's notification permission; Settings shows when it is off.
+The two one-tap actions use `NSExtensionRequestHandling` with no screen. They
+complete quietly on success. The context action owns a sheet and briefly reports
+the upload outcome inline. All three use `ExtensionInput.finish` for persistence,
+upload, failure notifications and completion. Never add a success-only extension
+view: iOS presents it as a full-height sheet covering the source page.
 
 See the Synapse repo's `../synapse/AGENTS.md` for comprehensive documentation including architecture and the sync model.
 
@@ -26,15 +31,15 @@ One Xcode target builds both platforms (`SDKROOT = auto`); the two platforms shi
 
 | | macOS | iOS |
 |---|---|---|
-| Ship | Push tag `vX.Y.Z` → `release-macos.yml` → Developer ID sign + notarize + staple → GH release → cask `receptor` bumped in [alexjmiller5/homebrew-tap](https://github.com/alexjmiller5/homebrew-tap) | Local build + cable install via justfile (no CI deploy) |
-| Install | Declaratively via nix-config: `homebrew.taps = ["alexjmiller5/tap"]`, `homebrew.casks = ["receptor"]` | `just deploy` (STABLE) / `just build` (DEBUG) |
-| Local dev | `just mac-dev-run` — Debug build launched from `build/`, never installed to /Applications | same verbs |
+| Ship | Push tag `vX.Y.Z` → `release-macos.yml` → Developer ID sign + notarize + staple → GH release → cask `receptor` bumped in [alexjmiller5/homebrew-tap](https://github.com/alexjmiller5/homebrew-tap) | Manual `release-ios.yml` dispatch, encrypted Ad Hoc artifact |
+| Install | Declaratively via nix-config: `homebrew.taps = ["alexjmiller5/tap"]`, `homebrew.casks = ["receptor"]` | Decrypt and verify CI IPA, then device install / `just ota` |
+| Local dev | `just mac-dev-run` - Debug build launched from `build/`, never installed to /Applications | same verbs |
 
-**The old macOS rm-cp-codesign deploy one-liner is dead.** /Applications/Receptor.app comes from the cask after a tagged release; never copy a build there by hand. After pushing a tag, verify with `gh run watch <id> --exit-status` — never assume the release succeeded.
+/Applications/Receptor.app comes from the cask after a tagged release; never copy a build there by hand. After pushing a tag, verify with `gh run watch <id> --exit-status` - never assume the release succeeded.
 
 **Versions:** a macOS release happens only when Alex asks for one, and only its release commit changes `MARKETING_VERSION`. iOS cable installs are not releases and never bump it. When to release and which number: the `semver` skill.
 
-The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Four targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`) and the iOS-only action extensions `ReceptorSend`, `ReceptorShare`, `ReceptorPrefilled` (embedded with `platformFilter: iOS` so the macOS build ignores them; one shared `Shared/Extension.entitlements`). `Shared/` is compiled into all three. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
+The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and committed so CI needs no xcodegen. Edit `project.yml`, never the project in Xcode. Five product targets: `Receptor` (multiplatform app, `supportedDestinations: [iOS, macOS]`) and the iOS-only action extensions `ReceptorSend`, `ReceptorShare`, `ReceptorPrefilled` (embedded with `platformFilter: iOS` so the macOS build ignores them; one shared `Shared/Extension.entitlements`). `ReceptorWidgets` is an iOS-only WidgetKit extension embedded with `platformFilter: iOS`; its separate `Receptor Widgets Ad Hoc` profile is required for device installation. It needs no App Group entitlement. `Shared/` is compiled into all three action extensions. XcodeGen leaves `SUPPORTED_PLATFORMS` empty on multi-destination targets and `SDKROOT` unset on the extensions - both are pinned explicitly in `project.yml`, keep them.
 
 > **iCloud gotcha:** the repo lives under `~/Desktop` (iCloud). Never point
 > `-derivedDataPath` inside the repo for a signed build - iCloud stamps
@@ -49,12 +54,12 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just gen` | Regenerate `Receptor.xcodeproj` from `project.yml` (every other verb runs it first) |
 | `just dev` | Open Xcode |
 | `just test` | Unit tests (`ReceptorTests`) on a simulator (`IOS_SIMULATOR` picks the device, default iPhone 17) |
-| `just check` | Unsigned iOS-simulator + macOS builds — the CI gate (`check.yml`) |
+| `just check` | Unsigned iOS-simulator + macOS builds - the CI gate (`check.yml`) |
 | `just sim-share "<action>"` | Run a share-sheet action on a simulator against a fake backend; leaves step screenshots and every distinct frame. **Look at them before any phone install that touches a share action** |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build into `build/Receptor.ipa` + install over the local network; phone unreachable = ask the owner: `just ota` or cable |
 | `just ota` | Serve `build/Receptor.ipa` as an install page on this machine's tailnet name (one tap on the phone, any network; blocks while serving) |
-| `just signing-setup` | Pull the Apple Distribution cert + the three Ad Hoc profiles from 1Password into the keychain / profile dirs |
+| `just signing-setup` | Pull the Apple Distribution cert + the five Ad Hoc profiles from 1Password into the keychain / profile dirs |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
 | `just mac-dev-run` | Local macOS testing from `build/`, no /Applications install |
@@ -70,43 +75,39 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 > `lsregister -dump | grep -E "^path:.*Receptor"` (lsregister lives under
 > `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/`).
 
-## Signing
+## Signing and releases
 
-**Signing material lives in 1Password (`Apple Signing` vault), not the keychain.** `just signing-setup` / `just signing-cleanup` cache and evict it; both must run from Alex's OWN terminal (desktop-authed `op`) — the claude-code service account cannot see that vault, so Claude pastes the command instead of running it. Team ID: `467A4PRB8F` (injected via CLI; the pbxproj carries no team).
+macOS releases use `release-macos.yml`: push an approved version tag, then verify
+signing, notarization, the GitHub release and the cask update.
 
-- **macOS (CI)**: Developer ID Application cert + hardened runtime + notarization, in `release-macos.yml`. The macOS entitlements file (`Receptor/Receptor-macOS.entitlements`: app group `group.com.alexmiller.receptor`, sandbox off) is passed explicitly to `codesign` — app groups work with Developer ID without a provisioning profile, and the workflow fails if the entitlement doesn't survive the re-sign.
-- **iOS**: explicit App IDs (`com.alexmiller.receptor`, `.share`, `.send`, `.prefilled`), each with the App Groups capability configured to `group.com.alexmiller.receptor` in the developer portal (portal-only step: `scripts/asc-adhoc-profiles.py` registers the App IDs and enables the capability, but neither the API nor Xcode can assign the group). Two modes, manual profiles, never `-allowProvisioningUpdates` for STABLE:
+iOS releases use manual `release-ios.yml` dispatch with an ephemeral age public
+key as `artifact_recipient`. CI reads the shared Apple Signing credentials using
+the project's own CI service account, signs the app and all three extensions in
+a temporary keychain, and uploads only an encrypted IPA with one-day retention.
+Download and decrypt locally, verify all bundle signatures and embedded profiles,
+then install the existing artifact through the paired host or `just ota`.
+Never upload an unencrypted IPA or signing material as a CI artifact. Delete the
+temporary age identity after decryption. Local `just deploy` is a fallback only
+with a stated reason; normal development uses simulator builds.
 
-| Mode | Recipe | Signing | Validity | Logs |
-|---|---|---|---|---|
-| A: DEBUG (dev loop) | `just build` | Automatic, Apple Development | 7 days | readable |
-| B: STABLE (daily use) | `just deploy` | Manual, Apple Distribution + one Ad Hoc profile per target (`Receptor Ad Hoc`, `Receptor Share Ad Hoc`, `Receptor Send Ad Hoc`, `Receptor Prefilled Ad Hoc`, named in `project.yml`) | until the Distribution cert expires | stripped |
-
-Ad Hoc profiles are minted by `scripts/asc-adhoc-profiles.py` (App Store Connect API; `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_KEY_P8` env, device UDIDs via `ASC_TEAM_DEVICE_UDIDS`; `--register-only` stops after the bundle IDs) and stored as one item in the `Apple Signing` vault (`Receptor Ad Hoc Profiles`, one `<target>_mobileprovision_base64` field each; id in the justfile). Re-run the script + update the item when the cert rotates, a device is added, or a target is added (register, assign the group in the portal, mint).
-
-> Mode A (DEBUG) needs an Apple Development cert in the login keychain and Xcode
-> signed in to the team; dev certs are disposable (Xcode → Settings → Accounts
-> → Manage Certificates → +) and deliberately not stored in 1Password.
-
-iOS build rules:
-
-- **If Alex asks for device logs** → must be a Mode A (DEBUG) install; Release strips `get-task-allow`.
-- **"Profile doesn't match" / "no identity found"** → the keychain cache is empty; Alex runs `just signing-setup`.
-- Device installs use `xcrun devicectl` (wired into the recipes). Alex's iPhone UDID is the justfile default; override with `IOS_DEVICE_ID`.
-- Find connected devices: `xcrun xctrace list devices 2>&1 | grep -i iphone`
+The app and `.share`, `.send`, `.prefilled` App IDs each carry
+`group.com.alexmiller.receptor`. Each target has a separate Ad Hoc profile in
+`project.yml`. Profiles live in the shared Apple Signing vault item referenced by
+the justfile. When registering a target, assign its App Group in the developer
+portal before minting a profile with `scripts/asc-adhoc-profiles.py`.
 
 ## Connection (no developer credentials in the app)
 
 A device talks to its capture service (Synapse's `synapse-capture` endpoint) with its OWN token: `Authorization: Bearer <token>`. The token is minted by the service per device (`just clients issue "<device>"` in the synapse repo prints an enrollment link), never the operator's Modal proxy credentials.
 
-- **Enrollment link**: the https page the service prints opens `receptor://enroll?url=<capture URL>&token=<token>`; `DeepLink.enroll` validates both (`Configuration.validIntakerURL` / `validToken`), `Configuration.enroll` stores them and `SyncManager.connectionChanged()` posts "Receptor connected" and flushes everything queued while unconnected. Settings is read-only: "Connected to <host>" with Disconnect (`Configuration.disconnect`), or "Not connected" - the URL and token are never typed in, an enrollment link is the only way to connect.
+- **Enrollment link**: the https page the service prints opens `receptor://enroll?url=<capture URL>&token=<token>`; `DeepLink.enroll` validates both (`Configuration.validIntakerURL` / `validToken`), `Configuration.enroll` stores them and `SyncManager.connectionChanged()` flushes everything queued while unconnected. Settings is read-only: "Connected to <host>" with Disconnect (`Configuration.disconnect`), or "Not connected" - the URL and token are never typed in, an enrollment link is the only way to connect.
 - **Storage**: the URL in the App Group defaults, the token in the Keychain (`Shared/TokenStore.swift`); on iOS the item uses the App Group as its access group so the share extensions read it, on macOS the login keychain. Launch purges the Modal proxy credentials older builds kept in defaults (`Configuration.purgeLegacyCredentials`).
 - **Refused credential**: 401/403 leaves the thought `.failed` (retried after re-enrollment) and posts one "access was refused" notification; any other 4xx is a payload rejection and is never retried (`ThoughtStatus.after(httpStatus:)`).
 - **Friend-ready**: onboarding someone = `just clients issue "<their device>"` + send the link + an install (Mac: `brew install --cask alexjmiller5/tap/receptor`; iOS: an Ad Hoc build needs their UDID registered - TestFlight would remove that step). Revoking one device touches no other.
 
 ## Secrets
 
-`.env.tpl` is the manifest: release secrets are name-based refs into the shared `Apple Signing` vault; the `Receptor` project vault holds only a placeholder (the app's only runtime secret is the per-device token from its enrollment link, kept in the Keychain). CI's single GH secret is `OP_SERVICE_ACCOUNT_TOKEN` (the `receptor-ci` SA, read on both vaults) — set up once via `op-project-bootstrap .env.tpl --repo alexjmiller5/receptor`.
+`.env.tpl` is the manifest: release secrets are name-based refs into the shared `Apple Signing` vault; the `Receptor` project vault holds only a placeholder (the app's only runtime secret is the per-device token from its enrollment link, kept in the Keychain). CI's single GH secret is `OP_SERVICE_ACCOUNT_TOKEN` (the `receptor-ci` SA, read on both vaults) - set up once via `op-project-bootstrap .env.tpl --repo alexjmiller5/receptor`.
 
 ## Key Concepts
 
@@ -128,17 +129,20 @@ Free-form, never parsed by the app; each surface stamps its own label:
 | `receptor://compose?source=<label>` (iOS sheet / Mac `QuickCapturePanel`) | the link's `source`, else `ios-compose-link` / `macos-panel` |
 | `receptor://recept?text=&source=<label>` | the link's `source` (Hammerspoon: `hammerspoon-hyper-r`, `hammerspoon-hyper-q`, `hammerspoon-chrome-url`; agents: `agent`) |
 | Share sheet actions | `share-send` / `share-context` / `share-prefilled` |
+| Native thought control | `native-control` (iOS does not distinguish Lock Screen from Control Center) |
 | `Recept` App Shortcut | its optional Source parameter, else `app-shortcut` (iOS does not tell an intent whether the Lock Screen, Control Center, Action Button, Siri or Spotlight ran it) |
 
-## Failure surfacing
+## Capture feedback
 
-- `Configuration.validIntakerURL` gates the Settings URL field: only a full
-  http(s) URL with a host is persisted, so a half-typed/cleared field never
-  nils the stored URL (that silently rejected six captures on 2026-09-04).
-- A `.rejected` (4xx) thought posts a local notification - it is never retried,
-  so it is the one silent-loss path. `.failed` sends stay quiet (they retry).
-- Not-configured posts one notification per process, and the intent returns
-  "Queued locally — Receptor is not configured" instead of a bare "Queued".
+Successful captures and background syncs never post notifications. The Mac quick
+panel confirms local persistence inline for 600 ms, then closes without activating
+the app. The context share sheet briefly reports its actual upload outcome inline.
+The no-UI share actions complete quietly. App Intent presentation belongs to iOS;
+Receptor returns its value without a result dialog or success banner.
+
+Only failures post notifications: rejected payloads, a missing/refused connection,
+and persistence errors. Transient uploads remain queued for automatic retry.
+Settings explains these failure alerts and warns when banners are unavailable.
 
 ## Sync Flow
 
@@ -166,8 +170,8 @@ Shared/                        # compiled into the app AND both extensions
 ├── Configuration.swift        # App Group storage, settings, share-sheet default contexts
 ├── DeepLink.swift             # receptor://compose?source=, receptor://recept and receptor://enroll parsing
 ├── TokenStore.swift           # the device's capture token in the Keychain
-├── ExtensionInput.swift       # reads the share-sheet input; finish() = capture + banner + completeRequest
-├── ShareCapture.swift         # extension-side enqueue + background upload
+├── ExtensionInput.swift       # reads the share-sheet input; finish() = capture + failure alert + completeRequest
+├── ShareCapture.swift         # extension-side persistence + direct upload
 ├── Extension.entitlements     # App Group, shared by the three extensions
 └── DebugFileLog.swift
 Receptor/                      # the app (iOS + macOS)
@@ -188,7 +192,7 @@ scripts/ota-install.sh         # just ota: tailnet install page
 
 ## Critical Rules
 
-1. **Ship changes down the right pipeline** - iOS: cable install via `just deploy` (or `just build` for the debug loop). macOS: test locally with `just mac-dev-run`; users get it by tagging a release — never hand-copy into /Applications
+1. **Ship changes down the right pipeline** - iOS: manual CI signing, then install the verified artifact. macOS: test locally with `just mac-dev-run`; users get it by tagging a release - never hand-copy into /Applications
 2. **FIFO ordering** - Flush stops on first failure to preserve order
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
 4. **Every thought carries a `source`** naming the surface that captured it (table under Source stamp); a new capture surface gets its own label
