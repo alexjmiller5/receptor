@@ -135,7 +135,7 @@ struct QuickCaptureView: View {
             if saved {
                 focused = false
                 feedback = "Saved"
-                try? await Task.sleep(for: .milliseconds(600))
+                try? await Task.sleep(for: .milliseconds(2100))
                 onCancel()
             } else {
                 feedback = "Could not save. Try again."
