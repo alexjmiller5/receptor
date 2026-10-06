@@ -31,10 +31,10 @@ One Xcode target builds both platforms (`SDKROOT = auto`); the two platforms shi
 | | macOS | iOS |
 |---|---|---|
 | Ship | Push tag `vX.Y.Z` → `release-macos.yml` → Developer ID sign + notarize + staple → GH release → cask `receptor` bumped in [alexjmiller5/homebrew-tap](https://github.com/alexjmiller5/homebrew-tap) | Manual `release-ios.yml` dispatch, encrypted Ad Hoc artifact |
-| Install | Declaratively via nix-config: `homebrew.taps = ["alexjmiller5/tap"]`, `homebrew.casks = ["receptor"]` | Decrypt and verify CI IPA, then device install / `just ota` |
+| Install | App-owned Nix release package + `darwinModules.default`; Homebrew cask remains an alternative | Decrypt and verify CI IPA, then device install / `just ota` |
 | Local dev | `just mac-dev-run` - Debug build launched from `build/`, never installed to /Applications | same verbs |
 
-/Applications/Receptor.app comes from the cask after a tagged release; never copy a build there by hand. After pushing a tag, verify with `gh run watch <id> --exit-status` - never assume the release succeeded.
+Installed macOS apps come from the signed release ZIP through the Nix package or Homebrew cask; never copy a development build into Applications. Nix consumers enable `programs.receptor` and use nix-darwin's standard application set. Preserve the ZIP bytes, signature and stapled ticket (`dontFixup = true`); follow README's opt-in `programs.receptor.migrateFromHomebrew` transition during activation. Run `nix flake check --all-systems` and `bash scripts/test-nix-package.sh` for packaging changes. After pushing a tag, verify with `gh run watch <id> --exit-status` - never assume the release succeeded.
 
 **Versions:** a macOS release happens only when Alex asks for one, and only its release commit changes `MARKETING_VERSION`. iOS cable installs are not releases and never bump it. When to release and which number: the `semver` skill.
 
@@ -70,7 +70,9 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 > build dirs leaves dangling registrations that can shadow /Applications and
 > break macOS Shortcuts with "action could not be found" (bit us 2026-08-06).
 > Fix: `lsregister -u <dead path>` for each ghost, `lsregister -f
-> /Applications/Receptor.app`, relaunch the app. Check registrations with
+> <installed-app-path>`, relaunch the app. Resolve the real installed Nix Apps
+> alias (normally `/Applications/Nix Apps/Receptor.app`) or cask path first;
+> never reuse the removed cask path after migration. Check registrations with
 > `lsregister -dump | grep -E "^path:.*Receptor"` (lsregister lives under
 > `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/`).
 
