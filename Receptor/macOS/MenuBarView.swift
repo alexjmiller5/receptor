@@ -3,19 +3,13 @@ import SwiftUI
 #if os(macOS)
 import AppKit
 
-/// Bridges the AppKit status-item click to SwiftUI's `openWindow`, which can open
-/// the "main" Window scene even after it's been closed. The closure is captured
-/// once from a live SwiftUI view (the main window's content) and reused.
-final class MenuBarCoordinator: ObservableObject {
-    static let shared = MenuBarCoordinator()
-    var openMainWindow: (() -> Void)?
-}
-
 /// macOS status-bar item. Left-click TOGGLES the real Receptor window (open if
 /// closed, close if visible); right-click shows an Open/Quit menu. The item stays
 /// in the menu bar for the app's whole lifetime — closing the window does NOT quit.
+@MainActor
 final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private var mainWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -27,6 +21,16 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         item.button?.action = #selector(statusItemClicked)
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         statusItem = item
+
+        // A Settings-only SwiftUI app does not forward openUntitledFile.
+        // Default launches open the app; URL, login and service launches stay quiet.
+        let launchReason = NSAppleEventManager.shared().currentAppleEvent?
+            .paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
+        if notification.userInfo?[NSApplication.launchIsDefaultUserInfoKey] as? Bool == true,
+           launchReason != keyAELaunchedAsLogInItem,
+           launchReason != keyAELaunchedAsServiceItem {
+            showMainWindow()
+        }
     }
 
     /// Menu-bar app: closing the window must NOT terminate the app, so the status
@@ -53,8 +57,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private var mainWindow: NSWindow? {
-        NSApp.windows.first { $0.identifier?.rawValue == "main" }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showMainWindow()
+        return false
     }
 
     @objc private func statusItemClicked() {
@@ -74,15 +79,31 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Open (or front) the main window — the right-click "Open" and the open half
-    /// of the toggle. Uses the SwiftUI openWindow bridge if the scene was released.
+    /// Create the main window lazily so background launches and captures cannot
+    /// leave a window hidden beneath the foreground app.
     @objc private func showMainWindow() {
-        NSApp.activate(ignoringOtherApps: true)
-        if let win = mainWindow {
-            win.makeKeyAndOrderFront(nil)
-        } else {
-            MenuBarCoordinator.shared.openMainWindow?()
+        if mainWindow == nil {
+            guard let container = SyncManager.shared.modelContainer else { return }
+            let content = MacContentView()
+                .environmentObject(SyncManager.shared)
+                .environmentObject(ComposeRouter.shared)
+                .modelContainer(container)
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 500, height: 600),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable],
+                backing: .buffered, defer: false
+            )
+            window.title = "Receptor"
+            window.identifier = NSUserInterfaceItemIdentifier("main")
+            window.isReleasedWhenClosed = false
+            window.isRestorable = false
+            window.contentViewController = NSHostingController(rootView: content)
+            window.setContentSize(NSSize(width: 500, height: 600))
+            window.center()
+            mainWindow = window
         }
+        mainWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showMenu() {
