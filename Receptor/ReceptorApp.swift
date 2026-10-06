@@ -54,29 +54,16 @@ struct ReceptorApp: App {
 
     var body: some Scene {
         #if os(macOS)
-        // Menu bar app on macOS: the status-bar item (MacAppDelegate) opens THIS
-        // window on click — same as the old "Open Receptor" / ⌘O. No MenuBarExtra
-        // dropdown/popover.
-        Window("Receptor", id: "main") {
-            MacContentView()
-                .environmentObject(SyncManager.shared)
-                .environmentObject(ComposeRouter.shared)
-                .modelContainer(container)
-                .onAppear {
-                    SyncManager.shared.requestFlush(trigger: .appBecameActive)
-                }
-        }
-        .defaultSize(width: 500, height: 600)
-        .commands {
-            CommandGroup(replacing: .newItem) { }
-        }
-
-        // Settings window
+        // The delegate creates the main window only for an explicit open action.
+        // A SwiftUI Window scene would also open behind other apps on a capture.
         Settings {
             SettingsTab()
                 .environmentObject(SyncManager.shared)
                 .modelContainer(container)
                 .frame(minWidth: 450, minHeight: 500)
+        }
+        .commands {
+            CommandGroup(replacing: .newItem) { }
         }
         #else
         // iOS app
@@ -97,7 +84,6 @@ struct ReceptorApp: App {
 #if os(macOS)
 struct MacContentView: View {
     @EnvironmentObject private var syncManager: SyncManager
-    @Environment(\.openWindow) private var openWindow
     @State private var selectedTab = 0
 
     var body: some View {
@@ -116,11 +102,7 @@ struct MacContentView: View {
         }
         .frame(minWidth: 450, minHeight: 400)
         .onAppear {
-            // Give the status-item click a way to reopen this window scene.
-            MenuBarCoordinator.shared.openMainWindow = {
-                openWindow(id: "main")
-                NSApp.activate(ignoringOtherApps: true)
-            }
+            syncManager.requestFlush(trigger: .appBecameActive)
         }
     }
 }

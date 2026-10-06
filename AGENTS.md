@@ -130,6 +130,20 @@ Free-form, never parsed by the app; each surface stamps its own label:
 | Share sheet actions | `share-send` / `share-context` / `share-prefilled` |
 | `Recept` App Shortcut | its optional Source parameter, else `app-shortcut` (iOS does not tell an intent whether the Lock Screen, Control Center, Action Button, Siri or Spotlight ran it) |
 
+## Mac window lifecycle
+
+Capture deep links and login/service launches must not create the main window.
+`MacAppDelegate` creates and retains that window only when explicitly opened;
+closing it leaves the menu-bar item alive. Keep the main view out of an automatic
+SwiftUI `Window` scene, which creates a hidden window behind the foreground app.
+
+Run `python3 scripts/test-mac-window.py` for the macOS lifecycle regression.
+It builds a disposable app identity and URL scheme with temporary storage, then
+checks cold compose/cancel, a silent send to a local fake service, explicit open,
+menu-bar toggle/reopen, Command-Q and cold explicit open through Accessibility.
+The Mac must be unlocked. It never uses the installed app or sends a production
+capture.
+
 ## Capture feedback
 
 Successful captures and background syncs never post notifications. The Mac quick
@@ -157,7 +171,7 @@ Settings explains these failure alerts and warns when banners are unavailable.
 | Background sync | BGTaskScheduler | Not needed (app stays running) |
 | Menu bar | N/A | Brain icon with quick capture |
 | Login item | N/A | SMAppService toggle in Settings |
-| App lifecycle | AppDelegate handles events | Window/MenuBarExtra scenes |
+| App lifecycle | AppDelegate handles events | AppKit status item and lazily created main window; SwiftUI Settings scene |
 
 ## Code Organization
 
