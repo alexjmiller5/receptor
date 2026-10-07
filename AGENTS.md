@@ -149,8 +149,8 @@ capture.
 ## Capture feedback
 
 Successful captures and background syncs never post notifications. The Mac quick
-panel confirms local persistence inline for 2.1 seconds, then closes without activating
-the app. The context share sheet briefly reports its actual upload outcome inline.
+panel confirms local persistence with a centered message and no action buttons
+for 1.35 seconds, then closes without activating the app. The context share sheet briefly reports its actual upload outcome inline.
 The no-UI share actions complete quietly. App Intent presentation belongs to iOS;
 Receptor returns its value without a result dialog or success banner.
 

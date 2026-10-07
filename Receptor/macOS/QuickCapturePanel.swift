@@ -76,9 +76,7 @@ struct QuickCaptureView: View {
     private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(feedback ?? "Enter your thought 💭")
-                .font(.title3.weight(.semibold))
+        ZStack(alignment: .topLeading) {
             if saved {
                 VStack(spacing: 8) {
                     Label("Queued in Receptor", systemImage: "checkmark.circle.fill")
@@ -88,29 +86,36 @@ struct QuickCaptureView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
-                .frame(maxWidth: .infinity, minHeight: 72)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                Text("Saved")
+                    .font(.title3.weight(.semibold))
             } else {
-                TextEditor(text: $text)
-                    .font(.body)
-                    .focused($focused)
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .frame(minHeight: 72)
-                    .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(nsColor: .separatorColor)))
-                    .onKeyPress(.return, phases: .down) { press in
-                        if press.modifiers.contains(.shift) { return .ignored }
-                        if !trimmed.isEmpty { submit() }
-                        return .handled
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(feedback ?? "Enter your thought 💭")
+                        .font(.title3.weight(.semibold))
+                    TextEditor(text: $text)
+                        .font(.body)
+                        .focused($focused)
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                        .frame(minHeight: 72)
+                        .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(nsColor: .separatorColor)))
+                        .onKeyPress(.return, phases: .down) { press in
+                            if press.modifiers.contains(.shift) { return .ignored }
+                            if !trimmed.isEmpty { submit() }
+                            return .handled
+                        }
+                        .onKeyPress(.escape) { onCancel(); return .handled }
+                    HStack {
+                        Spacer()
+                        Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
+                        Button("Done") { submit() }
+                            .keyboardShortcut(.defaultAction)
+                            .disabled(trimmed.isEmpty || submitting)
                     }
-                    .onKeyPress(.escape) { onCancel(); return .handled }
-            }
-            HStack {
-                Spacer()
-                Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
-                Button("Done") { submit() }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(trimmed.isEmpty || submitting)
+                }
             }
         }
         // The panel has a hidden, full-size title bar: without ignoring its
@@ -131,8 +136,7 @@ struct QuickCaptureView: View {
             saved = await onSend(trimmed)
             if saved {
                 focused = false
-                feedback = "Saved"
-                try? await Task.sleep(for: .milliseconds(2100))
+                try? await Task.sleep(for: .milliseconds(1350))
                 onCancel()
             } else {
                 feedback = "Could not save. Try again."
