@@ -2,11 +2,11 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "receptor";
-  version = "2.0.3";
+  version = "2.0.5";
 
   src = fetchurl {
     url = "https://github.com/alexjmiller5/receptor/releases/download/v${version}/Receptor-v${version}.zip";
-    hash = "sha256-ryQS9Xp/FN6IZIfWcqsPr2l7GG78jzhQRLaLDAdG2vU=";
+    hash = "sha256-rYTAB1Kp3fIxDN9/8UKS7DXBnyDsTrzO4qqqWthxAS8=";
   };
 
   nativeBuildInputs = [ unzip ];
