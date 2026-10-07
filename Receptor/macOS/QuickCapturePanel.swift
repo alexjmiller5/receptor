@@ -106,9 +106,6 @@ struct QuickCaptureView: View {
                     .onKeyPress(.escape) { onCancel(); return .handled }
             }
             HStack {
-                Text("Return sends · Shift+Return for a new line")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.cancelAction)
                 Button("Done") { submit() }
