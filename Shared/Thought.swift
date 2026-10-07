@@ -81,9 +81,10 @@ final class Thought {
     /// Free-form, chosen by the caller; forwarded to Synapse as `source`.
     var source: String?
 
-    /// Webhook body. `source` is only sent when the caller stamped one.
+    /// Stable submission identity survives background retries and store reloads.
+    /// `source` is only sent when the caller stamped one.
     var uploadPayload: [String: String] {
-        var payload = ["raw_text": text]
+        var payload = ["raw_text": text, "capture_id": id.uuidString.lowercased()]
         if let source, !source.isEmpty { payload["source"] = source }
         return payload
     }
