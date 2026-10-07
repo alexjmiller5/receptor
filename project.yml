@@ -14,7 +14,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     SWIFT_EMIT_LOC_STRINGS: YES
     CURRENT_PROJECT_VERSION: 1
-    MARKETING_VERSION: 2.0.6
+    MARKETING_VERSION: 2.0.7
     # Team is injected on the command line (justfile / CI); never committed.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
