@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import Receptor
 
@@ -69,5 +70,57 @@ struct DisconnectTests {
         #expect(!Configuration.isConfigured)
         #expect(Configuration.connectedHost == nil)
         #expect(Configuration.captureToken == nil)
+    }
+}
+
+struct CaptureIdentityTests {
+    @Test func retriesEncodeTheSavedIdentityWithoutRegeneratingIt() throws {
+        let thought = Thought(text: "Synthetic capture", source: "test-client")
+        let identity = thought.id.uuidString.lowercased()
+        let first = try JSONSerialization.jsonObject(with: JSONEncoder().encode(thought.uploadPayload)) as? [String: String]
+        thought.status = .failed
+        thought.retryCount += 1
+        let retry = try JSONSerialization.jsonObject(with: JSONEncoder().encode(thought.uploadPayload)) as? [String: String]
+        #expect(first?["capture_id"] == identity)
+        #expect(retry == first)
+        #expect(first?["source"] == "test-client")
+        #expect(first?["raw_text"] == "Synthetic capture")
+    }
+
+    @Test func identicalTextSubmissionsHaveDifferentCaptureIdentities() {
+        let first = Thought(text: "Same text")
+        let second = Thought(text: "Same text")
+        #expect(first.uploadPayload["capture_id"] != nil)
+        #expect(first.uploadPayload["capture_id"] != second.uploadPayload["capture_id"])
+    }
+}
+
+
+struct PersistedCaptureIdentityTests {
+    @Test func reopeningTheStorePreservesTheUploadIdentity() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("capture.store")
+        let schema = Schema([Thought.self, SyncLogEntry.self])
+        var saved: UUID?
+        do {
+            let container = try ModelContainer(for: schema,
+                configurations: [ModelConfiguration(url: url, cloudKitDatabase: .none)])
+            let context = ModelContext(container)
+            let thought = Thought(text: "Synthetic retry", source: "test-client")
+            context.insert(thought)
+            try context.save()
+            saved = thought.id
+        }
+        let container = try ModelContainer(for: schema,
+            configurations: [ModelConfiguration(url: url, cloudKitDatabase: .none)])
+        let context = ModelContext(container)
+        let thought = try #require(context.fetch(FetchDescriptor<Thought>()).first)
+        thought.status = .failed
+        thought.retryCount += 1
+        try context.save()
+        #expect(thought.id == saved)
+        #expect(thought.uploadPayload["capture_id"] == saved?.uuidString.lowercased())
     }
 }
