@@ -80,9 +80,9 @@ deploy: gen
     exit 1
 
 # Serve build/Receptor.ipa as an install page on this machine's tailnet name
-# (blocks while serving; OTA_TTL seconds, default 900).
+# Returns immediately; the shared page lists each app for 48 hours.
 ota:
-    ./scripts/ota-install.sh "build/{{app}}.ipa"
+    python3 scripts/ota-install.py "build/{{app}}.ipa"
 
 # Pull signing material from the 1P `Apple Signing` vault into the login
 # keychain + profile dirs. 1P is the only durable home for certs — the local

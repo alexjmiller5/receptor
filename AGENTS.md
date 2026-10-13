@@ -57,7 +57,7 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just sim-share "<action>"` | Run a share-sheet action on a simulator against a fake backend; leaves step screenshots and every distinct frame. **Look at them before any phone install that touches a share action** |
 | `just build` | iOS DEBUG build + cable install (7-day signing, readable logs) |
 | `just deploy` | iOS STABLE build into `build/Receptor.ipa` + install over the local network; phone unreachable = ask the owner: `just ota` or cable |
-| `just ota` | Serve `build/Receptor.ipa` as an install page on this machine's tailnet name (one tap on the phone, any network; blocks while serving) |
+| `just ota` | Add `build/Receptor.ipa` to the shared tailnet install page at `https://<tailnet name>/install/`; returns immediately, entry expires after 48 hours |
 | `just signing-setup` | Pull the Apple Distribution cert + the four Ad Hoc profiles from 1Password into the keychain / profile dirs |
 | `just signing-cleanup` | Remove them again (keychain is only a cache) |
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |

@@ -120,3 +120,5 @@ the package pin. Consumers update their Receptor flake input and rebuild/switch
 normally. The release tag itself predates that package-pin commit; pin the
 packaging commit when selecting the new Nix release. Never substitute a locally
 built app for the signed archive or disable fixup protection.
+
+`just ota` adds the verified IPA to the machine’s shared page at `https://<tailnet name>/install/` and returns immediately. Every app is listed together; a newer build replaces its app’s entry and entries expire after 48 hours. Open the page in Safari on the phone with Tailscale connected and tap Install.

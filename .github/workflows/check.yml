@@ -15,4 +15,5 @@ jobs:
           xcode-version: latest-stable
       - name: Install build tools
         run: brew install just xcodegen
+      - run: python3 -B scripts/ota_install_test.py
       - run: just check
