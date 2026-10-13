@@ -63,6 +63,8 @@ The `.xcodeproj` is GENERATED from `project.yml` by XcodeGen (`just gen`) and co
 | `just logs` | Collect + filter 5m of device logs into `logs/` (DEBUG install only) |
 | `just mac-dev-run` | Local macOS testing from `build/`, no /Applications install |
 
+`just build`, `just deploy` and `just logs` require `IOS_DEVICE_ID` (the target device's identifier, `xcrun devicectl list devices`); there is no default.
+
 `just test` runs `ReceptorTests` (Swift Testing, pure `Shared/` logic) on an iOS simulator. The simulator build is ad-hoc signed (`CODE_SIGN_IDENTITY=-`): an unsigned build has no App Group entitlement and the app crashes at launch on the nil container.
 
 > **Shortcuts-actions gotcha:** every launched build (DerivedData, `build/`)
