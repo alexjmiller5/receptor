@@ -7,8 +7,6 @@
 set shell := ["bash", "-cu"]
 
 app := "Receptor"
-# Alex's iPhone; override with IOS_DEVICE_ID for another device
-device_id := env_var_or_default("IOS_DEVICE_ID", "00000000-0000000000000000")
 team_id := "467A4PRB8F"
 # Ad Hoc profile NAMES are per target in project.yml (Release config); this is
 # the 1Password item holding all four .mobileprovision files (Apple Signing vault).
@@ -45,12 +43,13 @@ check: gen
 # login keychain, Xcode signed in to the team), 7-day validity, readable logs.
 # The first run also registers the App IDs / App Group in the portal.
 build: gen
+    @: "${IOS_DEVICE_ID:?Set IOS_DEVICE_ID to an enrolled device identifier}"
     xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
-      -destination "platform=iOS,id={{device_id}}" \
+      -destination "platform=iOS,id=$IOS_DEVICE_ID" \
       -configuration Debug \
       DEVELOPMENT_TEAM={{team_id}} -allowProvisioningUpdates build
     APP=$(ls -td ~/Library/Developer/Xcode/DerivedData/{{app}}-*/Build/Products/Debug-iphoneos/{{app}}.app | head -1) && \
-      xcrun devicectl device install app --device {{device_id}} "$APP"
+      xcrun devicectl device install app --device "$IOS_DEVICE_ID" "$APP"
 
 # iOS STABLE build: Ad Hoc distribution, no logs, packaged as build/Receptor.ipa,
 # then installed over the local network. Run `just signing-setup` first if the
@@ -59,6 +58,7 @@ build: gen
 deploy: gen
     #!/usr/bin/env bash
     set -euo pipefail
+    : "${IOS_DEVICE_ID:?Set IOS_DEVICE_ID to an enrolled device identifier}"
     dd="$HOME/Library/Developer/Xcode/DerivedData/{{app}}-deploy"
     xcodebuild -project {{app}}.xcodeproj -scheme {{app}} \
       -destination "generic/platform=iOS" \
@@ -72,11 +72,11 @@ deploy: gen
     rm -f "build/{{app}}.ipa"
     (cd "$stage" && zip -qry "$OLDPWD/build/{{app}}.ipa" Payload) && rm -rf "$stage"
     echo "wrote build/{{app}}.ipa"
-    if xcrun devicectl device install app --device {{device_id}} "build/{{app}}.ipa"; then exit 0; fi
+    if xcrun devicectl device install app --device "$IOS_DEVICE_ID" "build/{{app}}.ipa"; then exit 0; fi
     echo "install failed: the phone is not reachable over the local network"
     echo "ask the owner which they prefer:"
     echo "  tailnet  just ota   (install link, one tap, any network)"
-    echo "  cable    plug the phone in, then: xcrun devicectl device install app --device {{device_id}} build/{{app}}.ipa"
+    echo "  cable    plug the phone in, then: xcrun devicectl device install app --device $IOS_DEVICE_ID build/{{app}}.ipa"
     exit 1
 
 # Serve build/Receptor.ipa as an install page on this machine's tailnet name
@@ -125,8 +125,9 @@ signing-cleanup:
 
 # Collect + filter 5m of device logs into logs/ (DEBUG install only)
 logs:
+    @: "${IOS_DEVICE_ID:?Set IOS_DEVICE_ID to an enrolled device identifier}"
     mkdir -p logs
-    sudo log collect --device-udid {{device_id}} --last 5m --output logs/{{app}}.logarchive
+    sudo log collect --device-udid "$IOS_DEVICE_ID" --last 5m --output logs/{{app}}.logarchive
     log show logs/{{app}}.logarchive --predicate 'subsystem == "com.alexmiller.receptor"' --style compact > logs/{{app}}-logs.txt
     @echo "wrote logs/{{app}}-logs.txt"
 
