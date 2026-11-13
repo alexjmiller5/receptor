@@ -214,3 +214,10 @@ scripts/ota-install.sh         # just ota: tailnet install page
 3. **Thoughts persist first** - Always saved to SwiftData before any network call
 4. **Every thought carries a `source`** naming the surface that captured it (table under Source stamp); a new capture surface gets its own label
 5. **Per-item locking** - 40-second lock (outlives the 30s HTTP timeout) prevents double-sends during concurrent flushes; a `.sending` thought with an expired lock is treated as stale (process died mid-send) and resent on the next flush
+
+## Install page icons
+
+The shared OTA install publisher embeds one composed phone-and-download SVG
+master and its opaque 180/192/512-pixel home-screen renders. Icon links use
+the configured install base URL; verify routes and install links with
+`python3 -B scripts/ota_install_test.py`. The publisher stays self-contained.
